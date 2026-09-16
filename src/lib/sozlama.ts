@@ -48,8 +48,19 @@ const sxema = z.object({
 
 export type Sozlama = z.infer<typeof sxema>
 
+/**
+ * Vercel saytning manzilini o'zi biladi. SAYT_URL yozilmagan bo'lsa o'shani
+ * olamiz, aks holda havolalar va SEO `localhost:3002` ga ishora qilib qolardi.
+ * Avval doimiy (production) domen, bo'lmasa shu deploy manzili.
+ */
+function saytManzili(muhit: NodeJS.ProcessEnv): string | undefined {
+  if (muhit.SAYT_URL) return muhit.SAYT_URL
+  const vercel = muhit.VERCEL_PROJECT_PRODUCTION_URL || muhit.VERCEL_URL
+  return vercel ? `https://${vercel}` : undefined
+}
+
 function oqi(): Sozlama {
-  const natija = sxema.safeParse(process.env)
+  const natija = sxema.safeParse({ ...process.env, SAYT_URL: saytManzili(process.env) })
   if (!natija.success) {
     const satrlar = natija.error.issues
       .map(i => `  · ${i.path.join('.')}: ${i.message}`)

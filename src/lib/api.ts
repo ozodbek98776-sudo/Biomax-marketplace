@@ -34,8 +34,11 @@ export function ozSaytdanmi(req: NextRequest): boolean {
     const kutilgan = new URL(sozlama.SAYT_URL).host
     const kelgan = new URL(origin).host
     if (kelgan === kutilgan) return true
-    // Rivojlanishda telefondan lokal tarmoq IP orqali ochilishi mumkin
-    return rivojlanish && kelgan === req.nextUrl.host
+    // Sahifa shu so'rov kelgan hostning o'zidan ochilgan — bu ayni "o'z sayti".
+    // Begona saytning origin'i hech qachon bizning hostimizga teng bo'lmaydi.
+    // Shu tekshiruv tufayli sayt SAYT_URL noto'g'ri yozilganda ham ishlaydi:
+    // Vercel'ning vaqtinchalik manzili, www/apex, telefondan lokal IP.
+    return kelgan === req.nextUrl.host
   } catch {
     return false
   }

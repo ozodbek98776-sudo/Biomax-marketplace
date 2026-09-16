@@ -104,6 +104,60 @@ Kirish kodlari va savat bu shartnomalardan chiqmaydi.
 **Muhim:** lokal ERP jonli Telegram sessiyasiga ulanmaydi (`ONLAYN_TELEGRAM_DEV` qo'yilmagan bo'lsa) —
 bitta sessiya ikki joydan ishlatilsa Telegram serverdagisini bekor qilishi mumkin.
 
+## Vercel'ga deploy
+
+Loyiha Vercel uchun tayyor: `postinstall` da `prisma generate`, mintaqa
+`vercel.json` da `sin1` (ERP bilan bir joyda), Node 22.
+
+### 1. Muhit o'zgaruvchilari — deploydan OLDIN
+
+Vercel → Project → Settings → Environment Variables. Bularsiz **build yiqiladi**
+(`src/lib/sozlama.ts` ataylab shunday: noto'g'ri sozlama bilan sayt ko'tarilmaydi):
+
+| O'zgaruvchi | Qiymat | Majburiymi |
+|---|---|---|
+| `DATABASE_URL` | Neon **pooler** manzili (`-pooler.` bor) | ha |
+| `ERP_BASE_URL` | ERP ning tashqi manzili, masalan `https://erp.biomax.uz` | ha |
+| `ERP_HMAC_SECRET` | ERP dagi bilan **bir xil**, kamida 32 belgi | ha |
+| `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
+| `KOD_KANALI` | `telegram` | ha |
+| `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
+| `SAYT_URL` | doimiy domen, masalan `https://biomax.uz` | yo'q¹ |
+| `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
+
+¹ Yozilmasa Vercel'ning o'z domeni olinadi. Doimiy domen ulangach yozib
+qo'ygan ma'qul — SEO havolalari shunga qarab yaratiladi.
+
+² Vercel'da kerak emas: `prisma generate` bazaga ulanmaydi. Migratsiya
+lokal kompyuterdan qo'llanadi (pastga qarang).
+
+### 2. Migratsiya
+
+Vercel build paytida migratsiya **qilinmaydi** — ERP bilan bitta bazada
+ishlagani uchun bu xavfli. Sxema o'zgarsa, lokal kompyuterdan:
+
+```bash
+npx prisma migrate deploy      # DIRECT_DATABASE_URL (pooler EMAS) ishlatiladi
+```
+
+### 3. ERP tomonini ulash
+
+ERP `.env` ida `MARKETPLACE_URL` va `MARKETPLACE_OMMAVIY_URL` yangi Vercel
+domeniga qaratiladi, `ERP_HMAC_SECRET` esa ikkalasida bir xil bo'ladi.
+
+### Deployda nima xato bo'lishi mumkin
+
+| Belgi | Sabab |
+|---|---|
+| Build "Muhit sozlamalari noto'g'ri" bilan to'xtaydi | yuqoridagi majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa |
+| Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
+| Kod kelmaydi | `ERP_BASE_URL` noto'g'ri yoki ERP da Telegram sessiyasi yo'q |
+| "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |
+
+**Eslatma:** IP bo'yicha tezlik chegarasi server xotirasida (`src/lib/api.ts`).
+Vercel bir nechta nusxada ishlaganda har nusxa o'z hisobini yuritadi. Asosiy
+himoya baribir telefon raqami bo'yicha, bazada (`src/lib/domen/kirish-kodi.ts`).
+
 ## Boshlashdan oldin
 
 TZ'ning **13-bo'limidagi ochiq savollarga** javob kerak, ayniqsa:
