@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+/* Qorong'i rejim — <html> dagi `.qorongi` sinfi orqali (Tailwind v4). */
+@custom-variant dark (&:where(.qorongi, .qorongi *));
+
+@theme {
+  /* ── Brend ───────────────────────────────────────────────────────
+     BioMax qizili ERP'dan meros. Lekin vitrina — ERP emas: fon iliqroq
+     va yumshoqroq, qizil esa faqat harakat tugmalarida ishlaydi.
+     Ko'p qizil ishlatilsa sayt "ogohlantirish" kabi ko'rinadi. */
+  --color-brend: #C62828;
+  --color-brend-quyuq: #A31F1F;
+  --color-brend-och: #FDECEA;
+
+  /* ── Semantik ───────────────────────────────────────────────────
+     Brend rangidan ALOHIDA: "bor / kam qoldi / yo'q" holatlari
+     brend qiziliga qo'shilib ketmasligi kerak. */
+  --color-bor: #2F7D5D;
+  --color-bor-och: #E6F2EC;
+  --color-kam: #A8690C;
+  --color-kam-och: #FBF0DD;
+  --color-yoq: #6F6266;
+  --color-yoq-och: #F1EDEC;
+  /* "Nega BioMax" ikonkalari uchun to'rtinchi yumshoq fon */
+  --color-kok: #2B5A8C;
+  --color-kok-och: #EAF0F7;
+
+  /* ── Neytral ────────────────────────────────────────────────────
+     Sof kulrang emas — brend tomon ozgina iliq mayl berilgan. */
+  --color-qogoz: #FBF9F8;
+  --color-yuza: #FFFFFF;
+  --color-yuza-2: #F4F0EF;
+  --color-siyoh: #1A1416;
+  --color-siyoh-2: #4A3F43;
+  --color-xira: #7A6C70;
+  --color-chiziq: #E6DEDD;
+  --color-chiziq-2: #D3C8C7;
+
+  /* Rasm o'rnidagi yumshoq gradient va xarita rasmi */
+  --color-rasm-1: #F7F1EF;
+  --color-rasm-2: #ECE3E0;
+  --color-xarita: #EDEFEA;
+  --color-xarita-yol: #DFE3DB;
+  --color-xarita-yol-2: #F6F7F3;
+  --color-xarita-matn: #1F5A42;
+
+  /* Qorong'i chaqiriq bloki — yorug' rejimda ham qorong'i turadi */
+  --color-teskari: #1A1416;
+  --color-teskari-matn: #FBF9F8;
+  --color-teskari-xira: #BFB3B0;
+
+  /* ── Shrift ─────────────────────────────────────────────────────── */
+  --font-sans: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-raqam: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Qorong'i rejim tokenlari — faqat qiymatlar qayta belgilanadi.
+   Komponentlar har doim token orqali ishlaydi, hech qachon
+   to'g'ridan-to'g'ri rang bilan emas. */
+.qorongi {
+  --color-qogoz: #14100F;
+  --color-yuza: #1C1716;
+  --color-yuza-2: #241E1D;
+  --color-siyoh: #F2EBE9;
+  --color-siyoh-2: #CDC1BE;
+  --color-xira: #9B8B87;
+  --color-chiziq: #322A29;
+  --color-chiziq-2: #453A38;
+  --color-brend: #F0685F;
+  --color-brend-quyuq: #F5837B;
+  --color-brend-och: #33191A;
+  --color-bor: #64C69B;
+  --color-bor-och: #16281F;
+  --color-kam: #E2A64A;
+  --color-kam-och: #2C2113;
+  --color-yoq: #9B8B87;
+  --color-yoq-och: #241E1D;
+  --color-kok: #7FAEE0;
+  --color-kok-och: #182231;
+  --color-rasm-1: #241E1D;
+  --color-rasm-2: #2C2524;
+  --color-xarita: #1B201C;
+  --color-xarita-yol: #1F241F;
+  --color-xarita-yol-2: #232923;
+  --color-xarita-matn: #9ED9BD;
+  --color-teskari: #241E1D;
+}
+
+html {
+  color-scheme: light dark;
+  /* Yopishqoq sarlavha ostida qolmasin: /#yetkazish kabi langarlar */
+  scroll-padding-top: 88px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* <details> dagi standart uchburchak — o'rniga o'z ikonkamiz */
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+
+/* Nuqtali fon — qahramon kompozitsiyasi va qorong'i bloklarda */
+.nuqtali {
+  background-image: radial-gradient(var(--color-chiziq-2) 1.1px, transparent 1.1px);
+  background-size: 20px 20px;
+}
+.nuqtali-och {
+  background-image: radial-gradient(rgba(255,255,255,.07) 1.1px, transparent 1.1px);
+  background-size: 22px 22px;
+}
+
+body {
+  background: var(--color-qogoz);
+  color: var(--color-siyoh);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Klaviatura bilan yurish ko'rinadigan bo'lsin — kirish imkoniyati talabi. */
+:focus-visible {
+  outline: 2px solid var(--color-brend);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",            "x": 0,    "y": 0,    "w": 390,  "h": 844, "title": "Bosh sahifa" },
+    { "file": "Katalog.dc.html",         "x": 480,  "y": 0,    "w": 390,  "h": 844, "title": "Katalog" },
+    { "file": "Mahsulot.dc.html",        "x": 960,  "y": 0,    "w": 390,  "h": 844, "title": "Mahsulot" },
+    { "file": "Savat.dc.html",           "x": 1440, "y": 0,    "w": 390,  "h": 844, "title": "Savat" },
+    { "file": "Rasmiylashtirish.dc.html","x": 1920, "y": 0,    "w": 390,  "h": 844, "title": "Rasmiylashtirish" },
+    { "file": "Kuzatuv.dc.html",         "x": 2400, "y": 0,    "w": 390,  "h": 844, "title": "Buyurtma kuzatuvi" },
+    { "file": "BoshQorongi.dc.html",     "x": 2880, "y": 0,    "w": 390,  "h": 844, "title": "Bosh sahifa — qorong'i" },
+    { "file": "Operator.dc.html",        "x": 0,    "y": 1000, "w": 1440, "h": 900, "title": "Operator paneli" },
+    { "file": "DizaynTizimi.dc.html",    "x": 1580, "y": 1000, "w": 1240, "h": 1560, "title": "Dizayn tizimi", "print": "flow" }
+  ],
+  "annotations": [
+    {
+      "id": "mavjudlik-qoidasi",
+      "x": 0,
+      "y": -150,
+      "w": 700,
+      "text": "Mavjudlik ataylab uch holat: Bor / Kam qoldi / Yo'q.\nAniq son hech qachon ko'rsatilmaydi — raqobatchiga ombor hajmini ochib bermaslik uchun.\nKelish narxi, ta'minotchi va foyda ham hech qachon chiqmaydi."
+    },
+    {
+      "id": "tolov-v1",
+      "x": 760,
+      "y": -150,
+      "w": 560,
+      "text": "v1 da to'lov faqat yetkazishda — naqd yoki kuryerdagi terminal.\nOnlayn to'lov (Payme/Click) v2 ga qoldirilgan."
+    },
+    {
+      "id": "operator-izoh",
+      "x": 0,
+      "y": 1950,
+      "w": 620,
+      "text": "Operator paneli — ish quroli, vitrina emas: zichroq, kamroq bezak.\nQabul qilish zaxirani 24 soatga band qiladi; bajarilganda ombordan do'konga\no'tkazma va ERP sotuvi avtomatik yoziladi."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

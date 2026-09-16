@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Onest', system-ui, sans-serif; background: #FBF9F8; }
+    a { color: #C62828; text-decoration: none; } a:hover { color: #A31F1F; }
+    h1, h2, h3 { text-wrap: balance; }
+  </style>
+</helmet>
+
+<!-- Planshet (834px): navigatsiya menyuga yig'iladi, lekin ikkala tugma
+     ko'rinadi. Qahramon matni to'liq enda, kompozitsiya tagida.
+     Mahsulotlar 3 ustun. -->
+<div style="width: 834px; min-height: 2320px; background: #FBF9F8; color: #1A1416">
+
+  <div style="height: 72px; padding: 0 32px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-bottom: 1px solid #E6DEDD">
+    <span style="width: 44px; height: 44px; margin-left: -10px; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1416" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </span>
+    <div style="display: flex; align-items: baseline; gap: 1px">
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em">Bio</span>
+      <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em; color: #C62828">Max</span>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 10px">
+      <span style="height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14.5px; font-weight: 600">Kirish</span>
+      <span style="height: 44px; padding: 0 18px; display: flex; align-items: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14.5px; font-weight: 600">Ro‘yxatdan o‘tish</span>
+    </div>
+  </div>
+
+  <div style="padding: 56px 48px 40px; display: flex; flex-direction: column; gap: 22px">
+    <span style="align-self: flex-start; display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px 0 10px; background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 999px; font-size: 13px; font-weight: 500; color: #4A3F43">
+      <span style="width: 8px; height: 8px; border-radius: 999px; background: #2F7D5D"></span>
+      Chilonzor va Yunusobodda 2 soatda yetkazamiz
+    </span>
+    <h1 style="margin: 0; max-width: 13em; font-size: 54px; line-height: 1.03; font-weight: 800; letter-spacing: -0.035em">Do‘kondagi narxda — eshigingizgacha</h1>
+    <p style="margin: 0; max-width: 32em; font-size: 17.5px; line-height: 1.6; color: #4A3F43">BioMax do‘konidagi oziq-ovqat, uy kimyosi va gigiyena mahsulotlarini onlayn tanlang. Pulni mahsulotni qo‘lingizga olganingizda to‘laysiz.</p>
+    <div style="display: flex; align-items: center; gap: 22px">
+      <span style="height: 56px; padding: 0 26px; display: flex; align-items: center; gap: 10px; background: #C62828; color: #FFFFFF; border-radius: 14px; font-size: 16.5px; font-weight: 600">
+        Ro‘yxatdan o‘tish
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </span>
+      <span style="font-size: 15.5px; font-weight: 600">Mahsulotlarni ko‘rish</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding-top: 20px; border-top: 1px solid #E6DEDD">
+      <span style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 15px; font-weight: 700">Do‘kon narxi</span><span style="font-size: 13px; color: #7A6C70">kassadagi bilan bir xil</span></span>
+      <span style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 15px; font-weight: 700">Yetkazishda to‘lov</span><span style="font-size: 13px; color: #7A6C70">naqd yoki karta</span></span>
+      <span style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 15px; font-weight: 700">Jonli mavjudlik</span><span style="font-size: 13px; color: #7A6C70">ombordan</span></span>
+    </div>
+  </div>
+
+  <div style="margin: 0 48px; position: relative; height: 380px; border-radius: 26px; background-color: #F4F0EF; background-image: radial-gradient(#DCD2D0 1.1px, transparent 1.1px); background-size: 20px 20px; overflow: hidden">
+    <div style="position: absolute; left: 36px; top: 40px; width: 330px; background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 20px; padding: 20px; box-shadow: 0 18px 40px -22px rgba(26,20,22,.35)">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600; color: #7A6C70">MP-2026-00042</span>
+        <span style="font-size: 11px; font-weight: 700; color: #2F7D5D; background: #E6F2EC; padding: 4px 10px; border-radius: 999px">YO‘LDA</span>
+      </div>
+      <div style="font-size: 19px; font-weight: 700; margin-top: 12px">Taxminan 14:40 da</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 16px">
+        <span style="height: 5px; border-radius: 999px; background: #2F7D5D"></span>
+        <span style="height: 5px; border-radius: 999px; background: #2F7D5D"></span>
+        <span style="height: 5px; border-radius: 999px; background: #2F7D5D"></span>
+        <span style="height: 5px; border-radius: 999px; background: #E6DEDD"></span>
+      </div>
+    </div>
+    <div style="position: absolute; right: 36px; top: 60px; width: 210px; background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 20px; overflow: hidden; box-shadow: 0 22px 50px -24px rgba(26,20,22,.4)">
+      <div style="height: 130px; background: linear-gradient(150deg, #F7F1EF, #ECE3E0); position: relative; display: flex; align-items: center; justify-content: center">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#C9B8B4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 4v14H6Z"/><path d="M9 8h6M9 12h6"/></svg>
+        <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">Bor</span>
+      </div>
+      <div style="padding: 12px 13px 13px; display: flex; flex-direction: column; gap: 7px">
+        <span style="font-size: 13.5px; font-weight: 500">Ariel kukuni, 6 kg</span>
+        <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">128 000 so‘m</span>
+        <span style="height: 42px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+      </div>
+    </div>
+    <div style="position: absolute; left: 60px; bottom: 40px; display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 16px; padding: 12px 16px 12px 12px">
+      <span style="width: 40px; height: 40px; border-radius: 12px; background: #FDECEA; display: flex; align-items: center; justify-content: center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>
+      </span>
+      <span style="font-size: 14px; font-weight: 600">Naqd — kuryerga</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 64px; background: #FFFFFF; border-top: 1px solid #E6DEDD; border-bottom: 1px solid #E6DEDD">
+    <div style="padding: 56px 48px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #C62828">Qanday ishlaydi</span>
+      <h2 style="margin: 10px 0 28px; font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em">Uch qadam — va buyurtma yo‘lda</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FBF9F8; border: 1px solid #E6DEDD; border-radius: 18px">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #C62828">01</span>
+          <span style="font-size: 17px; font-weight: 700">Ro‘yxatdan o‘ting</span>
+          <span style="font-size: 14px; line-height: 1.55; color: #4A3F43">Ism va telefon, SMS kod bilan tasdiq.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FBF9F8; border: 1px solid #E6DEDD; border-radius: 18px">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #C62828">02</span>
+          <span style="font-size: 17px; font-weight: 700">Savatga soling</span>
+          <span style="font-size: 14px; line-height: 1.55; color: #4A3F43">Bor mahsulotni tanlang, manzilni belgilang.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 20px; background: #FBF9F8; border: 1px solid #E6DEDD; border-radius: 18px">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #C62828">03</span>
+          <span style="font-size: 17px; font-weight: 700">Qabul qiling</span>
+          <span style="font-size: 14px; line-height: 1.55; color: #4A3F43">Mahsulotni ko‘rib, kuryerga to‘laysiz.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 60px 48px 64px">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px">
+      <div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #C62828">Trenddagi mahsulotlar</span>
+        <h2 style="margin: 10px 0 0; font-size: 34px; line-height: 1.1; font-weight: 800; letter-spacing: -0.03em">Hozir ko‘p olinayotganlar</h2>
+      </div>
+      <span style="font-size: 14.5px; font-weight: 600; color: #C62828; padding-bottom: 6px">Barchasi</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #F7F1EF, #ECE3E0); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#C9B8B4" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 4v14H6Z"/><path d="M9 8h6M9 12h6"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">Bor</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px">Ariel avtomat kukuni, 6 kg</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">128 000 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #EFF3F1, #E1E9E5); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#B3C2BB" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l-1 4h-4Z"/><path d="M10 6h4l1.2 13a2 2 0 0 1-2 2.2h-2.4a2 2 0 0 1-2-2.2Z"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #A8690C; background: #FBF0DD; padding: 3px 9px; border-radius: 999px">Kam qoldi</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px">Coca-Cola, 1.5 L</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">14 500 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #F5F0EA, #EBE3D8); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#CFC0AA" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 8h6M9 12h6"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">Bor</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px">Nesquik kakao, 500 g</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">46 000 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #F6F1F4, #ECE2E8); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#C7B6C0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16H7Z"/><path d="M10 4V2h4v2"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">Bor</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px">Fairy suyuqligi, 900 ml</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">32 000 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #F2F4EC, #E5EADB); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#BAC4A5" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4Z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">Bor</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px">Lipton choy, 100 paket</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums">38 000 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 12px; font-size: 14px; font-weight: 600">Savatga</span>
+        </div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="height: 160px; background: linear-gradient(150deg, #F3F1EF, #E8E3DF); position: relative; display: flex; align-items: center; justify-content: center">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#CFC6C0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2"/></svg>
+          <span style="position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 600; color: #6F6266; background: #F1EDEC; padding: 3px 9px; border-radius: 999px">Yo‘q</span>
+        </div>
+        <div style="padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+          <span style="font-size: 14px; font-weight: 500; line-height: 1.4; min-height: 39px; color: #7A6C70">Zewa salfetka, 100 dona</span>
+          <span style="font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; color: #7A6C70">18 000 so‘m</span>
+          <span style="height: 44px; display: flex; align-items: center; justify-content: center; background: #F4F0EF; color: #7A6C70; border-radius: 12px; font-size: 14px; font-weight: 600">Xabar berish</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

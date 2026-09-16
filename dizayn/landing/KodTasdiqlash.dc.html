@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Onest', system-ui, sans-serif; background: #FBF9F8; }
+    a { color: #C62828; text-decoration: none; } a:hover { color: #A31F1F; }
+  </style>
+</helmet>
+
+<!-- 2-qadam, telefonda. Kod kiritilgach hisob ochiladi va mijoz
+     qaytgan joyiga (savat / tanlagan mahsuloti) yo'naltiriladi. -->
+<div style="width: 390px; height: 844px; background: #FBF9F8; color: #1A1416; display: flex; flex-direction: column">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px">
+    <span style="width: 44px; height: 44px; margin-left: -8px; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A1416" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    </span>
+    <span style="font-size: 13.5px; color: #7A6C70">Qadam <strong style="color: #1A1416">2</strong> / 2</span>
+  </div>
+
+  <div style="display: flex; gap: 6px; padding: 0 16px 28px">
+    <span style="flex: 1; height: 3px; border-radius: 999px; background: #C62828"></span>
+    <span style="flex: 1; height: 3px; border-radius: 999px; background: #C62828"></span>
+  </div>
+
+  <div style="flex: 1; padding: 0 20px; display: flex; flex-direction: column; gap: 26px">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <h1 style="margin: 0; font-size: 28px; line-height: 1.15; font-weight: 800; letter-spacing: -0.025em">Kodni kiriting</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; color: #4A3F43">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #1A1416">+998 90 123 45 67</span> raqamiga SMS yubordik.
+        <a style="font-weight: 600">O‘zgartirish</a>
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px">
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 1px solid #E6DEDD; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600">4</span>
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 1px solid #E6DEDD; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600">8</span>
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 1px solid #E6DEDD; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600">1</span>
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 1px solid #E6DEDD; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600">5</span>
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 2px solid #C62828; box-shadow: 0 0 0 4px #FDECEA; display: flex; align-items: center; justify-content: center">
+        <span style="width: 2px; height: 26px; background: #C62828"></span>
+      </span>
+      <span style="height: 58px; border-radius: 13px; background: #FFFFFF; border: 1px solid #E6DEDD"></span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #7A6C70">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6C70" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Kodni qayta yuborish — <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 600; color: #1A1416">0:42</span>
+    </div>
+
+    <div style="display: flex; gap: 12px; padding: 14px; background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 14px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F7D5D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      <span style="font-size: 13.5px; line-height: 1.5; color: #4A3F43">Kodni hech kimga aytmang. BioMax xodimlari uni hech qachon so‘ramaydi.</span>
+    </div>
+  </div>
+
+  <div style="padding: 16px 20px 26px">
+    <span style="height: 54px; display: flex; align-items: center; justify-content: center; background: #C62828; color: #FFFFFF; border-radius: 14px; font-size: 16.5px; font-weight: 600">Tasdiqlash</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

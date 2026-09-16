@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Onest', system-ui, sans-serif; }
+    a { color: #C62828; text-decoration: none; } a:hover { color: #A31F1F; }
+  </style>
+</helmet>
+
+<!-- Operator paneli — ish quroli, vitrina emas: zichroq, kamroq bezak.
+     Kunda o'nlab marta ochiladi, shuning uchun holat bir qarashda o'qilsin. -->
+<div style="width: 1440px; height: 900px; background: #FBF9F8; color: #1A1416; display: flex; overflow: hidden">
+
+  <!-- Yon panel -->
+  <div style="width: 220px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E6DEDD; display: flex; flex-direction: column; padding: 20px 0">
+    <div style="display: flex; align-items: baseline; gap: 1px; padding: 0 20px 22px">
+      <span style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em">Bio</span>
+      <span style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #C62828">Max</span>
+      <span style="font-size: 11px; font-weight: 600; color: #7A6C70; margin-left: 7px; letter-spacing: .04em; text-transform: uppercase">operator</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 12px">
+      <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; background: #FDECEA; color: #A31F1F; font-size: 13.5px; font-weight: 600">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14l-1 16H6Z"/><path d="M9 8h6"/></svg>
+        Buyurtmalar
+        <span style="margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; background: #C62828; color: #FFFFFF; font-size: 11px; font-weight: 700; border-radius: 999px; display: flex; align-items: center; justify-content: center">4</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; color: #4A3F43; font-size: 13.5px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7A6C70" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Vitrina
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-radius: 10px; color: #4A3F43; font-size: 13.5px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7A6C70" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg>
+        Hisobot
+      </div>
+    </div>
+    <div style="margin-top: auto; padding: 0 20px">
+      <div style="display: flex; align-items: center; gap: 9px; padding-top: 16px; border-top: 1px solid #E6DEDD">
+        <div style="width: 30px; height: 30px; border-radius: 999px; background: #F4F0EF; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; color: #4A3F43">JK</div>
+        <div style="min-width: 0">
+          <div style="font-size: 12.5px; font-weight: 600">Jasur Kassir</div>
+          <div style="font-size: 11px; color: #7A6C70">Operator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Asosiy -->
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+
+    <div style="display: flex; align-items: center; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid #E6DEDD">
+      <h1 style="margin: 0; font-size: 21px; font-weight: 700; letter-spacing: -0.015em">Buyurtmalar</h1>
+      <div style="display: flex; gap: 7px; margin-left: 8px">
+        <span style="height: 32px; padding: 0 13px; background: #1A1416; color: #FFFFFF; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center">Yangi · 4</span>
+        <span style="height: 32px; padding: 0 13px; background: #FFFFFF; border: 1px solid #E6DEDD; color: #4A3F43; border-radius: 999px; font-size: 12.5px; display: flex; align-items: center">Yig‘ilmoqda · 2</span>
+        <span style="height: 32px; padding: 0 13px; background: #FFFFFF; border: 1px solid #E6DEDD; color: #4A3F43; border-radius: 999px; font-size: 12.5px; display: flex; align-items: center">Yo‘lda · 3</span>
+        <span style="height: 32px; padding: 0 13px; background: #FFFFFF; border: 1px solid #E6DEDD; color: #4A3F43; border-radius: 999px; font-size: 12.5px; display: flex; align-items: center">Bugun bajarilgan · 11</span>
+      </div>
+    </div>
+
+    <div style="flex: 1; display: flex; min-height: 0">
+
+      <!-- Ro'yxat -->
+      <div style="width: 420px; flex-shrink: 0; border-right: 1px solid #E6DEDD; overflow-y: auto; padding: 14px">
+        <div style="display: flex; flex-direction: column; gap: 9px">
+
+          <div style="background: #FFFFFF; border: 1.5px solid #C62828; border-radius: 13px; padding: 13px 14px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600">MP-2026-00042</span>
+              <span style="font-size: 11px; font-weight: 700; color: #C62828; background: #FDECEA; padding: 3px 9px; border-radius: 999px">YANGI</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 600; margin-top: 7px">Dilnoza Karimova</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 2px">Chilonzor 9-kv, 24-uy · 3 ta mahsulot</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 9px">
+              <span style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">199 500 so‘m</span>
+              <span style="font-size: 12px; color: #7A6C70">4 daqiqa oldin</span>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; padding: 13px 14px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600">MP-2026-00041</span>
+              <span style="font-size: 11px; font-weight: 700; color: #C62828; background: #FDECEA; padding: 3px 9px; border-radius: 999px">YANGI</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 600; margin-top: 7px">Bekzod Rahimov</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 2px">Yunusobod 4-kv · 1 ta mahsulot</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 9px">
+              <span style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">47 000 so‘m</span>
+              <span style="font-size: 12px; color: #7A6C70">11 daqiqa oldin</span>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; padding: 13px 14px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600">MP-2026-00040</span>
+              <span style="font-size: 11px; font-weight: 700; color: #A8690C; background: #FBF0DD; padding: 3px 9px; border-radius: 999px">YIG‘ILMOQDA</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 600; margin-top: 7px">Shohruh Tursunov</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 2px">Chilonzor 12-kv · 6 ta mahsulot</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 9px">
+              <span style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">312 000 so‘m</span>
+              <span style="font-size: 12px; color: #7A6C70">38 daqiqa oldin</span>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; padding: 13px 14px">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-weight: 600">MP-2026-00039</span>
+              <span style="font-size: 11px; font-weight: 700; color: #2F7D5D; background: #E6F2EC; padding: 3px 9px; border-radius: 999px">YO‘LDA</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 600; margin-top: 7px">Nilufar Ergasheva</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 2px">Yunusobod 11-kv · 2 ta mahsulot</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 9px">
+              <span style="font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums">88 500 so‘m</span>
+              <span style="font-size: 12px; color: #7A6C70">1 soat oldin</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tafsilot -->
+      <div style="flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px">
+
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 18px; border-bottom: 1px solid #E6DEDD">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <h2 style="margin: 0; font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600">MP-2026-00042</h2>
+              <span style="font-size: 11px; font-weight: 700; color: #C62828; background: #FDECEA; padding: 3px 9px; border-radius: 999px">YANGI</span>
+            </div>
+            <div style="font-size: 13px; color: #7A6C70; margin-top: 5px">Bugun 12:04 · naqd — kuryerga</div>
+          </div>
+          <div style="display: flex; gap: 9px">
+            <div style="height: 40px; padding: 0 16px; border: 1px solid #E6DEDD; border-radius: 11px; display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600; color: #4A3F43">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6C70" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Rad etish
+            </div>
+            <div style="height: 40px; padding: 0 18px; background: #C62828; color: #FFFFFF; border-radius: 11px; display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
+              Qabul qilish
+            </div>
+          </div>
+        </div>
+
+        <!-- Qabul qilishda nima bo'lishi — operator bilib tursin -->
+        <div style="display: flex; gap: 10px; margin: 18px 0; padding: 13px 15px; background: #FFFFFF; border: 1px solid #E6DEDD; border-left: 3px solid #C62828; border-radius: 11px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C62828" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <div style="font-size: 13px; line-height: 1.5; color: #4A3F43">
+            Qabul qilinganda zaxira <strong>24 soatga band qilinadi</strong> — bu tovarlarni kassada
+            sotib bo‘lmaydi. Bajarilganda ombordan do‘konga o‘tkazma va sotuv avtomatik yoziladi.
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px">
+          <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; padding: 15px">
+            <div style="font-size: 11px; font-weight: 600; color: #7A6C70; text-transform: uppercase; letter-spacing: .05em">Mijoz</div>
+            <div style="font-size: 14.5px; font-weight: 600; margin-top: 7px">Dilnoza Karimova</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #4A3F43; margin-top: 3px">+998 90 123 45 67</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 6px">Oldin 7 marta buyurtma bergan</div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; padding: 15px">
+            <div style="font-size: 11px; font-weight: 600; color: #7A6C70; text-transform: uppercase; letter-spacing: .05em">Yetkazish</div>
+            <div style="font-size: 14.5px; font-weight: 600; margin-top: 7px">Kuryer · Chilonzor</div>
+            <div style="font-size: 13px; color: #4A3F43; margin-top: 3px">9-kvartal, 24-uy, 41-xonadon</div>
+            <div style="font-size: 12.5px; color: #7A6C70; margin-top: 6px">Mo‘ljal: maktab yonida</div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E6DEDD; border-radius: 13px; overflow: hidden">
+          <div style="display: grid; grid-template-columns: 1fr 110px 90px 120px; gap: 12px; padding: 11px 16px; border-bottom: 1px solid #E6DEDD; font-size: 11px; font-weight: 600; color: #7A6C70; text-transform: uppercase; letter-spacing: .05em">
+            <span>Mahsulot</span><span>Mavjudlik</span><span style="text-align: right">Miqdor</span><span style="text-align: right">Summa</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 110px 90px 120px; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #F1EDEC; align-items: center">
+            <span style="font-size: 13.5px">Ariel avtomat kukuni, 6 kg</span>
+            <span><span style="font-size: 10.5px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 8px; border-radius: 999px">Bor</span></span>
+            <span style="text-align: right; font-size: 13.5px; font-variant-numeric: tabular-nums">1</span>
+            <span style="text-align: right; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums">128 000</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 110px 90px 120px; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #F1EDEC; align-items: center">
+            <span style="font-size: 13.5px">Coca-Cola, 1.5 L</span>
+            <span><span style="font-size: 10.5px; font-weight: 600; color: #2F7D5D; background: #E6F2EC; padding: 3px 8px; border-radius: 999px">Bor</span></span>
+            <span style="text-align: right; font-size: 13.5px; font-variant-numeric: tabular-nums">2</span>
+            <span style="text-align: right; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums">29 000</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 110px 90px 120px; gap: 12px; padding: 13px 16px; border-bottom: 1px solid #F1EDEC; align-items: center">
+            <span style="font-size: 13.5px">Domestos gel, 1 L</span>
+            <span><span style="font-size: 10.5px; font-weight: 600; color: #A8690C; background: #FBF0DD; padding: 3px 8px; border-radius: 999px">Kam qoldi</span></span>
+            <span style="text-align: right; font-size: 13.5px; font-variant-numeric: tabular-nums">1</span>
+            <span style="text-align: right; font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums">27 500</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 16px; background: #FBF9F8">
+            <span style="font-size: 13px; color: #7A6C70">Yetkazib berish</span>
+            <span style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums">15 000</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 13px 16px; background: #FBF9F8; border-top: 1px solid #E6DEDD">
+            <span style="font-size: 14.5px; font-weight: 700">Jami</span>
+            <span style="font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums">199 500 so‘m</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

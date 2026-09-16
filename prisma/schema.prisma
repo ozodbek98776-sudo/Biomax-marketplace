@@ -1,0 +1,348 @@
+// BioMax Marketplace — ma'lumotlar sxemasi.
+//
+// MUHIM ARXITEKTURA QOIDASI
+// -------------------------
+// Bu sxemada FAQAT marketplace'ning o'z jadvallari bor (`mp_` prefiksi).
+// ERP jadvallari (Tovar, Kategoriya, Mijoz, Sotuv...) bu yerda YO'Q va
+// ular to'g'ridan-to'g'ri o'qilmaydi ham.
+//
+// Nega: "kelish narxi, aniq qoldiq, ta'minotchi va foyda hech qachon
+// chiqmaydi" degan qoida BITTA joyda — ERP tomonidagi
+// `/api/marketplace/*` shartnomasida — yashashi kerak. Agar marketplace
+// ERP jadvallarini o'zi o'qisa, o'sha qoidani ikkinchi marta yozish
+// kerak bo'lardi va bir kun ikkalasi bir-biriga mos kelmay qolardi.
+//
+// Yon foyda: marketplace ertaga butunlay boshqa bazaga ko'chsa ham
+// kodning bir qatori ham o'zgarmaydi.
+
+generator client {
+  provider        = "prisma-client-js"
+  // `multiSchema` — jadval nomlari to'liq yoziladi:
+  // "marketplace"."mp_elonlar". Busiz Prisma `search_path` ga tayanardi,
+  // Neon pooler'i (PgBouncer) esa uni startup parametri sifatida
+  // qabul qilmaydi va tranzaksiyalar orasida saqlamaydi ham.
+  previewFeatures = ["multiSchema"]
+}
+
+// Prisma 7'da ulanish manzili sxemada emas, `prisma.config.ts` da.
+datasource db {
+  provider = "postgresql"
+  schemas  = ["marketplace"]
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Xaridor
+// ─────────────────────────────────────────────────────────────────────
+
+/// Xaridor hisobi.
+///
+/// ERP'dagi `Mijoz` bilan `erpMijozId` orqali bog'lanadi — shunda sodiqlik
+/// ballari, nasiya tarixi va oldingi xaridlar bitta joyda qoladi. Bog'lanish
+/// birinchi buyurtmada telefon raqami bo'yicha o'rnatiladi.
+model MpHisob {
+  id           String   @id @default(cuid())
+  /// E.164 ko'rinishida: +998901234567. Yagona identifikator.
+  telefon      String   @unique
+  ism          String?
+  /// ERP `Mijoz.id`. Bo'sh bo'lishi mumkin — mijoz hali xarid qilmagan.
+  erpMijozId   String?  @unique
+  /// Telefon SMS kod bilan tasdiqlanganmi. Tasdiqlanmagan hisob
+  /// buyurtma bera olmaydi.
+  tasdiqlangan Boolean  @default(false)
+  faol         Boolean  @default(true)
+  yaratilgan   DateTime @default(now())
+  yangilangan  DateTime @updatedAt
+
+  manzillar   MpManzil[]
+  buyurtmalar MpBuyurtma[]
+  savat       MpSavat?
+
+  @@schema("marketplace")
+  @@map("mp_hisoblar")
+}
+
+/// Bir martalik kirish kodi (OTP).
+///
+/// Kod O'ZI saqlanmaydi — faqat SHA-256 xeshi. Baza sizib chiqsa ham
+/// tayyor kodlar qo'lga tushmasin.
+model MpKirishKodi {
+  id          String   @id @default(cuid())
+  telefon     String
+  kodXesh     String
+  /// Noto'g'ri urinishlar soni — 5 tadan keyin kod kuyadi.
+  urinishlar  Int      @default(0)
+  amalQiladi  DateTime
+  ishlatilgan Boolean  @default(false)
+  yaratilgan  DateTime @default(now())
+
+  @@index([telefon, yaratilgan])
+  @@index([amalQiladi])
+  @@schema("marketplace")
+  @@map("mp_kirish_kodlari")
+}
+
+/// Yetkazib berish manzili. Bittadan ko'p bo'lishi mumkin (uy, ish).
+model MpManzil {
+  id       String  @id @default(cuid())
+  hisobId  String
+  /// Foydalanuvchi bergan nom: "Uy", "Ish".
+  nomi     String
+  viloyat  String?
+  tuman    String?
+  /// Ko'cha, uy, xonadon — erkin matn.
+  manzil   String
+  moljal   String?
+  lat      Float?
+  lng      Float?
+  asosiy   Boolean @default(false)
+
+  hisob MpHisob @relation(fields: [hisobId], references: [id], onDelete: Cascade)
+
+  @@index([hisobId])
+  @@schema("marketplace")
+  @@map("mp_manzillar")
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Vitrina
+// ─────────────────────────────────────────────────────────────────────
+
+/// Vitrinaga chiqarilgan mahsulot.
+///
+/// ERP'dagi `Tovar` ni O'ZGARTIRMAYDI — faqat ustiga marketplace uchun
+/// kerak bo'lgan narsalarni qo'shadi: tavsif, brend, CDN rasmlari, SEO
+/// manzili. Narx, birlik va mavjudlik esa har doim ERP'dan jonli olinadi
+/// va bu yerda NUSXALANMAYDI (eskirgan narx ko'rsatmaslik uchun).
+model MpElon {
+  id         String   @id @default(cuid())
+  /// ERP `Tovar.id`. Yagona — bir tovarga bitta e'lon.
+  erpTovarId String   @unique
+  /// Vitrinada ko'rinadimi. Standart `false`: ega ataylab chiqarishi kerak.
+  faol       Boolean  @default(false)
+  /// SEO manzili: /mahsulot/<slug>
+  slug       String   @unique
+  /// Bo'sh bo'lsa ERP'dagi tovar nomi ishlatiladi.
+  sarlavha   String?
+  tavsif     String?
+  brend      String?
+  /// CDN havolalari (base64 EMAS — TZ 1.6 §1).
+  rasmlar    String[] @default([])
+  /// Bosh sahifada ko'rsatish tartibi; kichik son yuqorida.
+  tartib     Int      @default(0)
+  korishlar  Int      @default(0)
+  yaratilgan DateTime @default(now())
+  yangilangan DateTime @updatedAt
+
+  savatQatorlari MpSavatQatori[]
+
+  @@index([faol, tartib])
+  @@schema("marketplace")
+  @@map("mp_elonlar")
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Savat
+// ─────────────────────────────────────────────────────────────────────
+
+/// Savat. Mehmon uchun ham mavjud — `belgi` cookie orqali topiladi.
+///
+/// Savatda REZERV YO'Q: savat kunlab ochiq turishi mumkin va har savatga
+/// rezerv qo'yilsa zaxira soxta ravishda tugab qolardi. Rezerv faqat
+/// do'kon buyurtmani tasdiqlaganda qo'yiladi (TZ 8.1).
+model MpSavat {
+  id         String   @id @default(cuid())
+  /// Mehmon savati uchun tasodifiy belgi (cookie'da saqlanadi).
+  belgi      String   @unique
+  hisobId    String?  @unique
+  yaratilgan DateTime @default(now())
+  yangilangan DateTime @updatedAt
+
+  hisob    MpHisob?        @relation(fields: [hisobId], references: [id], onDelete: Cascade)
+  qatorlar MpSavatQatori[]
+
+  @@schema("marketplace")
+  @@map("mp_savatlar")
+}
+
+model MpSavatQatori {
+  id      String  @id @default(cuid())
+  savatId String
+  elonId  String
+  miqdor  Decimal @db.Decimal(12, 3)
+
+  savat MpSavat @relation(fields: [savatId], references: [id], onDelete: Cascade)
+  elon  MpElon  @relation(fields: [elonId], references: [id], onDelete: Cascade)
+
+  @@unique([savatId, elonId])
+  @@schema("marketplace")
+  @@map("mp_savat_qatorlari")
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Buyurtma
+// ─────────────────────────────────────────────────────────────────────
+
+enum MpHolat {
+  YANGI        // mijoz yubordi, do'kon hali ko'rmadi
+  TASDIQLANGAN // do'kon qabul qildi, zaxira band qilindi
+  YIGILMOQDA   // omborda yig'ilyapti
+  YOLDA        // kuryerda
+  BAJARILGAN   // topshirildi -> ERP'da Sotuv yaratildi
+  BEKOR        // bekor qilindi, rezerv bo'shatildi
+  QAYTARILGAN  // mijoz qaytardi
+
+  @@schema("marketplace")
+}
+
+enum MpTolov {
+  NAQD_YETKAZISHDA
+  KARTA_YETKAZISHDA
+  ONLAYN // v2 — Payme / Click / Uzum
+
+  @@schema("marketplace")
+}
+
+enum MpYetkazish {
+  KURYER
+  OLIB_KETISH
+
+  @@schema("marketplace")
+}
+
+/// Onlayn buyurtma.
+///
+/// DIQQAT: ERP'dagi `Buyurtma` modeli bilan aralashtirmaslik kerak —
+/// u kassirning saqlangan savati, bu esa mijoz buyurtmasi (TZ 1.6 §4).
+model MpBuyurtma {
+  id       String  @id @default(cuid())
+  /// Ko'rinadigan raqam: MP-2026-00001
+  raqam    String  @unique
+  hisobId  String
+  holati   MpHolat @default(YANGI)
+
+  yetkazish MpYetkazish @default(KURYER)
+  /// Manzil buyurtma paytida NUSXA qilib olinadi: mijoz keyin manzilini
+  /// tahrirlasa ham, bu buyurtma qayerga ketgani o'zgarmasligi kerak.
+  manzilMatni String?
+  /// Yetkazish hududi (tuman) — narx shu bo'yicha olingan.
+  hudud       String?
+  moljal      String?
+  lat         Float?
+  lng         Float?
+  aloqaTel    String
+  /// Buyurtma paytidagi ism nusxasi — kuryer kimni so'rashini bilsin.
+  aloqaIsm    String?
+  /// Mijozga ko'rsatilgan matn: "Bugun, 14:00–16:00" yoki "Imkon qadar tez".
+  vaqtOraligi    String?
+  /// Oraliq boshlanishi — do'kon ro'yxatni vaqt bo'yicha saralashi uchun.
+  yetkazishBoshi DateTime?
+
+  tolovUsuli MpTolov @default(NAQD_YETKAZISHDA)
+
+  mahsulotSumma Decimal @db.Decimal(12, 2)
+  yetkazishNarx Decimal @default(0) @db.Decimal(12, 2)
+  jamiSumma     Decimal @db.Decimal(12, 2)
+  /// Buyurtma paytidagi USD kursi. Ba'zi tovarlar dollarda narxlangan;
+  /// kurs keyin o'zgarsa ham mijoz rozi bo'lgan summa o'zgarmasligi kerak.
+  usdKursi      Decimal? @db.Decimal(12, 2)
+
+  izoh        String?
+  bekorSababi String?
+
+  /// Qaysi filial bajaradi. Hozir har doim `null` (markaziy), lekin maydon
+  /// boshidan bor — filial ochilganda tarixni ko'chirish kerak bo'lmasin.
+  bajaruvchiFilialId String?
+  /// Bajarilganda ERP'da yaratilgan `Sotuv.id`. Idempotentlik kaliti ham:
+  /// to'lgan bo'lsa `bajarish` ikkinchi marta ishlamaydi.
+  erpSotuvId         String?  @unique
+
+  yaratilgan  DateTime @default(now())
+  yangilangan DateTime @updatedAt
+
+  hisob     MpHisob           @relation(fields: [hisobId], references: [id])
+  qatorlar  MpBuyurtmaQatori[]
+  tarix     MpHolatTarixi[]
+  rezervlar MpRezerv[]
+
+  @@index([holati, yaratilgan])
+  @@index([hisobId, yaratilgan])
+  @@schema("marketplace")
+  @@map("mp_buyurtmalar")
+}
+
+/// Buyurtma qatori.
+///
+/// Nom va narx SHU YERGA NUSXA qilinadi. Katalogda narx keyin o'zgarsa ham,
+/// mijoz nimaga rozi bo'lgani hujjatda qolishi kerak.
+model MpBuyurtmaQatori {
+  id          String  @id @default(cuid())
+  buyurtmaId  String
+  erpTovarId  String
+  /// Mahsulot sahifasiga havola uchun (e'lon keyin o'chirilsa ham nom qoladi).
+  slug        String?
+  nomi        String
+  birlik      String
+  birlikNarxi Decimal @db.Decimal(12, 2)
+  miqdor      Decimal @db.Decimal(12, 3)
+  jami        Decimal @db.Decimal(12, 2)
+
+  buyurtma MpBuyurtma @relation(fields: [buyurtmaId], references: [id], onDelete: Cascade)
+
+  @@index([buyurtmaId])
+  @@schema("marketplace")
+  @@map("mp_buyurtma_qatorlari")
+}
+
+/// Zaxira rezervi.
+///
+/// Buyurtma TASDIQLANGANDA qo'yiladi. ERP qoldiqni hisoblaganda faol
+/// rezervlarni ayiradi — shunda kassir band qilingan tovarni sotib
+/// yubormaydi. Muddati o'tgan rezerv avtomatik bo'shatiladi.
+model MpRezerv {
+  id         String   @id @default(cuid())
+  buyurtmaId String
+  erpTovarId String
+  miqdor     Decimal  @db.Decimal(12, 3)
+  amalQiladi DateTime
+  bosh       Boolean  @default(false)
+  yaratilgan DateTime @default(now())
+
+  buyurtma MpBuyurtma @relation(fields: [buyurtmaId], references: [id], onDelete: Cascade)
+
+  @@index([erpTovarId, bosh])
+  @@index([amalQiladi, bosh])
+  @@schema("marketplace")
+  @@map("mp_rezervlar")
+}
+
+/// Holat o'zgarishi jurnali — kim, qachon, nega. Audit izi.
+model MpHolatTarixi {
+  id         String   @id @default(cuid())
+  buyurtmaId String
+  holati     MpHolat
+  izoh       String?
+  /// Operator id yoki "tizim".
+  kim        String?
+  sana       DateTime @default(now())
+
+  buyurtma MpBuyurtma @relation(fields: [buyurtmaId], references: [id], onDelete: Cascade)
+
+  @@index([buyurtmaId, sana])
+  @@schema("marketplace")
+  @@map("mp_holat_tarixi")
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Sozlama
+// ─────────────────────────────────────────────────────────────────────
+
+/// Kalit-qiymat sozlamalari: yetkazish narxi, ish vaqti, e'lon matni.
+/// ERP'dagi `Sozlama` bilan bir xil naqsh.
+model MpSozlama {
+  kalit       String   @id
+  qiymat      String
+  yangilangan DateTime @updatedAt
+
+  @@schema("marketplace")
+  @@map("mp_sozlamalar")
+}

@@ -1,0 +1,29 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",            "x": 0,    "y": 0,    "w": 1440, "h": 3700, "title": "Landing — kompyuter" },
+    { "file": "LandingPlanshet.dc.html", "x": 1560, "y": 0,    "w": 834,  "h": 2320, "title": "Landing — planshet" },
+    { "file": "LandingMobil.dc.html",    "x": 2514, "y": 0,    "w": 390,  "h": 2520, "title": "Landing — telefon" },
+    { "file": "LandingQorongi.dc.html",  "x": 0,    "y": 3960, "w": 1440, "h": 900,  "title": "Landing — qorong'i rejim" },
+    { "file": "KirishOynasi.dc.html",    "x": 1560, "y": 3960, "w": 1440, "h": 900,  "title": "«Savatga» bosilganda — mehmon" },
+    { "file": "RoyxatdanOtish.dc.html",  "x": 3120, "y": 3960, "w": 1440, "h": 900,  "title": "Ro'yxatdan o'tish — 1-qadam" },
+    { "file": "KodTasdiqlash.dc.html",   "x": 4680, "y": 3960, "w": 390,  "h": 844,  "title": "SMS kod — 2-qadam (telefon)" }
+  ],
+  "annotations": [
+    {
+      "id": "mehmon-qoidasi",
+      "x": 0, "y": -190, "w": 900,
+      "text": "Mehmon: mahsulot va narxlar ochiq, lekin buyurtma yopiq.\n«Savatga» bosilganda savatga emas — ro'yxatdan o'tish oynasi ochiladi.\nRo'yxatdan o'tgach tanlangan mahsulot avtomatik savatga tushadi va barcha imkoniyatlar ochiladi."
+    },
+    {
+      "id": "moslashuv",
+      "x": 1560, "y": -190, "w": 900,
+      "text": "Moslashuv: kompyuter 1440 → planshet 834 → telefon 390.\nPlanshet va telefonda sahifaning yuqori qismi ko'rsatilgan — qolgan bo'limlar (Nega BioMax, yetkazib berish, savol-javob) shu tartibda ustma-ust joylashadi."
+    },
+    {
+      "id": "toldirish-kerak",
+      "x": 0, "y": 3740, "w": 1300,
+      "text": "To'ldirilishi kerak: [DO'KON MANZILI], [TELEFON], [ISH VAQTI].\nTasdiqlash kerak: yetkazish hududlari va narxi (Chilonzor, Yunusobod, 2 soat, 15 000 so'm) — hozircha taxmin.\nMahsulot nomlari, narxlari va rasmlari — namuna; saytda ERP'dan jonli keladi."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
