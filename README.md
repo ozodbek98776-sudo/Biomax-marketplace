@@ -111,8 +111,12 @@ Loyiha Vercel uchun tayyor: `postinstall` da `prisma generate`, mintaqa
 
 ### 1. Muhit o'zgaruvchilari — deploydan OLDIN
 
-Vercel → Project → Settings → Environment Variables. Bularsiz **build yiqiladi**
-(`src/lib/sozlama.ts` ataylab shunday: noto'g'ri sozlama bilan sayt ko'tarilmaydi):
+Vercel → Project → Settings → Environment Variables. Har birini **Production,
+Preview va Development** uchun belgilang — faqat bittasiga qo'yilsa, boshqa
+muhitdagi deploy ishlamay qoladi.
+
+Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
+500 qaytadi va jurnalda nima yetishmayotgani yoziladi (`src/lib/sozlama.ts`).
 
 | O'zgaruvchi | Qiymat | Majburiymi |
 |---|---|---|
@@ -145,11 +149,24 @@ npx prisma migrate deploy      # DIRECT_DATABASE_URL (pooler EMAS) ishlatiladi
 ERP `.env` ida `MARKETPLACE_URL` va `MARKETPLACE_OMMAVIY_URL` yangi Vercel
 domeniga qaratiladi, `ERP_HMAC_SECRET` esa ikkalasida bir xil bo'ladi.
 
+### Build va sozlama
+
+`next build` sozlama yetishmasa ham **yiqilmaydi**: build sahifalarni yig'ish
+uchun har bir modulni ishga tushiradi, maxfiy qiymatlar esa build mashinasida
+bo'lmasligi mumkin. Yetishmagan qiymat o'rniga vaqtinchalik qiymat qo'yiladi va
+jurnalda ogohlantirish chiqadi (`src/lib/sozlama.ts`).
+
+Haqiqiy tekshiruv **server ko'tarilganda** bo'ladi: noto'g'ri sozlama bilan
+sayt ishlamaydi va jurnalda nima yetishmayotgani ro'yxat bilan yoziladi.
+Ya'ni noto'g'ri sozlama yashirin qolmaydi, lekin deployni ham to'smaydi.
+
+Kerak bo'lsa tekshiruvni qo'lda o'chirish: `SOZLAMANI_TEKSHIRMA=1`.
+
 ### Deployda nima xato bo'lishi mumkin
 
 | Belgi | Sabab |
 |---|---|
-| Build "Muhit sozlamalari noto'g'ri" bilan to'xtaydi | yuqoridagi majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa |
+| Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa. Build bunga to'xtamaydi — o'zgaruvchini qo'shib, qayta deploy qiling |
 | Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
 | Kod kelmaydi | `ERP_BASE_URL` noto'g'ri yoki ERP da Telegram sessiyasi yo'q |
 | "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |

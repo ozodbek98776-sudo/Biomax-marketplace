@@ -1,6 +1,11 @@
 import type { NextConfig } from 'next'
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const config: NextConfig = {
+  // Ildiz papkani aniq ko'rsatamiz: aks holda Next yuqoridagi boshqa
+  // `package-lock.json` ni topib, loyiha ildizini xato tanlashi mumkin.
+  turbopack: { root: dirname(fileURLToPath(import.meta.url)) },
   // Ishlab turgan dev server `.next` ini buzmasdan alohida build tekshirish uchun:
   // NEXT_DIST_DIR=.next-build npx next build
   distDir: process.env.NEXT_DIST_DIR || '.next',

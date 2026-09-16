@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
-// Muhit o'zgaruvchilari — ISHGA TUSHISHDA tekshiriladi.
+// Muhit o'zgaruvchilari — SERVER ISHGA TUSHGANDA tekshiriladi (build paytida
+// emas, pastdagi `buildBosqichi` ga qarang).
 //
 // Nega shu yerda: `process.env.X` ni kod ichida to'g'ridan-to'g'ri o'qish
 // eng ko'p uchraydigan ishlab chiqarish nosozligi — o'zgaruvchi yo'q bo'lsa
@@ -59,16 +60,63 @@ function saytManzili(muhit: NodeJS.ProcessEnv): string | undefined {
   return vercel ? `https://${vercel}` : undefined
 }
 
+/**
+ * `next build` bosqichidamizmi.
+ *
+ * Build sahifalarni yig'ish uchun har bir modulni ishga tushiradi — shu
+ * jumladan shu faylni ham. Maxfiy qiymatlar esa build mashinasida
+ * bo'lmasligi mumkin (Vercel'da ular loyiha sozlamalarida turadi va
+ * ba'zan faqat bitta muhit uchun belgilanadi). O'shanda build
+ * "Failed to collect page data" bilan yiqilardi.
+ */
+const buildBosqichi =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  process.env.SOZLAMANI_TEKSHIRMA === '1'
+
+/**
+ * Build paytida yetishmagan qiymat o'rniga qo'yiladigan vaqtinchalik qiymat.
+ * Bu bosqichda saytga hech kim kirmaydi va bazaga so'rov ketmaydi (barcha
+ * sahifalar dinamik), shuning uchun ular hech qayerda ishlatilmaydi.
+ */
+const ORINBOSAR: Record<string, string> = {
+  DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
+  ERP_BASE_URL: 'http://localhost:3001',
+  ERP_HMAC_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
+  SESSION_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
+  SAYT_URL: 'http://localhost:3002',
+}
+
 function oqi(): Sozlama {
-  const natija = sxema.safeParse({ ...process.env, SAYT_URL: saytManzili(process.env) })
-  if (!natija.success) {
-    const satrlar = natija.error.issues
-      .map(i => `  · ${i.path.join('.')}: ${i.message}`)
-      .join('\n')
-    // Ataylab `throw` — ilova noto'g'ri sozlama bilan ko'tarilmasin.
-    throw new Error(`Muhit sozlamalari noto‘g‘ri:\n${satrlar}\n\n.env.example dan nusxa oling.`)
+  const xom: Record<string, unknown> = { ...process.env, SAYT_URL: saytManzili(process.env) }
+  const natija = sxema.safeParse(xom)
+  if (natija.success) return natija.data
+
+  const satrlar = natija.error.issues
+    .map(i => `  · ${i.path.join('.')}: ${i.message}`)
+    .join('\n')
+
+  // Build paytida yiqilmaymiz: yetishmagan qiymat vaqtinchalik bilan
+  // almashtiriladi. Haqiqiy tekshiruv server ko'tarilganda (birinchi
+  // so'rovda) bo'ladi — noto'g'ri sozlama o'sha yerda darhol ko'rinadi.
+  if (buildBosqichi) {
+    const tuzatilgan = { ...xom }
+    for (const muammo of natija.error.issues) {
+      const kalit = String(muammo.path[0])
+      if (kalit in ORINBOSAR) tuzatilgan[kalit] = ORINBOSAR[kalit]
+    }
+    const qayta = sxema.safeParse(tuzatilgan)
+    if (qayta.success) {
+      console.warn(
+        `[sozlama] build paytida quyidagilar yo‘q yoki noto‘g‘ri:\n${satrlar}\n` +
+        '[sozlama] build davom etadi, lekin sayt ISHLASHI uchun ular muhit ' +
+        'o‘zgaruvchilarida bo‘lishi SHART (README → "Vercel\'ga deploy").',
+      )
+      return qayta.data
+    }
   }
-  return natija.data
+
+  // Ataylab `throw` — ilova noto'g'ri sozlama bilan ko'tarilmasin.
+  throw new Error(`Muhit sozlamalari noto‘g‘ri:\n${satrlar}\n\n.env.example dan nusxa oling.`)
 }
 
 export const sozlama = oqi()
@@ -77,12 +125,13 @@ export const sozlama = oqi()
 export const kodKanali: 'telegram' | 'konsol' =
   sozlama.KOD_KANALI ?? (sozlama.NODE_ENV === 'production' ? 'telegram' : 'konsol')
 
-if (sozlama.NODE_ENV === 'production' && kodKanali === 'konsol') {
+// Build paytida ogohlantirish bermaymiz: u yerdagi qiymatlar vaqtinchalik.
+if (!buildBosqichi && sozlama.NODE_ENV === 'production' && kodKanali === 'konsol') {
   // Ishlab chiqarishda kod ekranga chiqarilmaydi (`kod-yetkazish.ts`), lekin
   // bunday sozlama bilan hech kim kira olmaydi — darhol ko'rinsin.
   console.error('[sozlama] KOD_KANALI=konsol ishlab chiqarishda — mijozlar kod ololmaydi')
 }
-if (sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
+if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
   console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich bo‘ladi')
 }
 
