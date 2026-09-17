@@ -228,6 +228,8 @@ export interface ErpRoyxatFiltri {
   holat?: Holat | 'FAOL' | null
   qidiruv?: string | null
   sahifa?: number
+  /** Faqat shu raqamlar — ERP'da dostavchik o'ziga biriktirilganlarini ko'radi */
+  raqamlar?: string[] | null
 }
 
 const SAHIFA_HAJMI = 30
@@ -238,6 +240,7 @@ export async function erpBuyurtmalar(f: ErpRoyxatFiltri) {
     ...(f.holat === 'FAOL'
       ? { holati: { in: ['YANGI', 'TASDIQLANGAN', 'YIGILMOQDA', 'YOLDA'] } }
       : f.holat ? { holati: f.holat } : {}),
+    ...(f.raqamlar ? { raqam: { in: f.raqamlar } } : {}),
     ...(qidiruv
       ? { OR: [
           { raqam: { contains: qidiruv, mode: 'insensitive' } },
@@ -258,7 +261,9 @@ export async function erpBuyurtmalar(f: ErpRoyxatFiltri) {
       take: SAHIFA_HAJMI,
       select: TAFSILOT,
     }),
-    db.mpBuyurtma.groupBy({ by: ['holati'], _count: { _all: true } }),
+    // Sonlar holat va qidiruvga qaramaydi (tablar uchun), lekin raqamlar doirasiga qaraydi:
+    // dostavchik boshqalarning buyurtmalari sonini ko'rmasin
+    db.mpBuyurtma.groupBy({ by: ['holati'], where: f.raqamlar ? { raqam: { in: f.raqamlar } } : {}, _count: { _all: true } }),
   ])
 
   const sonlar = Object.fromEntries(guruh.map(g => [g.holati, g._count._all])) as Partial<Record<Holat, number>>
@@ -268,4 +273,35 @@ export async function erpBuyurtmalar(f: ErpRoyxatFiltri) {
 export async function erpBuyurtma(raqam: string): Promise<BuyurtmaTafsiloti | null> {
   const b = await db.mpBuyurtma.findUnique({ where: { raqam }, select: TAFSILOT })
   return b ? tekis(b) : null
+}
+
+/**
+ * ERP paneli uchun o'zgarish belgisi.
+ *
+ * Panel har necha soniyada faqat shu qisqa javobni so'raydi: yangi buyurtma
+ * tushsa yoki biror buyurtma holati o'zgarsa `belgi` o'zgaradi va panel
+ * ro'yxatni qayta yuklaydi. Bitta yig'ma so'rov (`yangilangan` har
+ * o'zgarishda yangilanadi), ro'yxatning o'zi yuborilmaydi.
+ */
+export async function erpBuyurtmaBelgisi() {
+  const [agg, yangiSoni, oxirgi] = await Promise.all([
+    db.mpBuyurtma.aggregate({ _max: { yangilangan: true }, _count: { _all: true } }),
+    db.mpBuyurtma.count({ where: { holati: 'YANGI' } }),
+    db.mpBuyurtma.findFirst({ orderBy: { yaratilgan: 'desc' }, select: { raqam: true, yaratilgan: true } }),
+  ])
+  return {
+    belgi: `${agg._max.yangilangan?.getTime() ?? 0}.${agg._count._all}`,
+    yangiSoni,
+    oxirgi: oxirgi ? { raqam: oxirgi.raqam, yaratilgan: oxirgi.yaratilgan.toISOString() } : null,
+  }
+}
+
+/** Mijoz sahifasi uchun: uning buyurtmasi (yoki barcha buyurtmalari) o'zgardimi. */
+export async function mijozBuyurtmaBelgisi(hisobId: string, raqam: string | null) {
+  const agg = await db.mpBuyurtma.aggregate({
+    where: { hisobId, ...(raqam ? { raqam } : {}) },
+    _max: { yangilangan: true },
+    _count: { _all: true },
+  })
+  return `${agg._max.yangilangan?.getTime() ?? 0}.${agg._count._all}`
 }

@@ -11,6 +11,7 @@ import { savatSoni } from '@/lib/domen/savat'
 import { telefonMatni } from '@/lib/domen/telefon'
 import { holatYorligi } from '@/lib/domen/buyurtma'
 import { cn } from '@/lib/cn'
+import JonliYangilash from '@/components/sayt/JonliYangilash'
 
 export const metadata: Metadata = { title: 'Kabinet', robots: { index: false } }
 
@@ -45,6 +46,8 @@ export default async function KabinetSahifasi() {
 
   return (
     <Qobiq>
+      {/* Buyurtma holatlari do'kon o'zgartirganda o'zi yangilanadi */}
+      <JonliYangilash url="/api/buyurtma/belgi" oraliqMs={8_000} />
       <div className={cn(KONTEYNER, 'pb-16 pt-8 sm:pt-10')}>
         {/* Profil */}
         <section className="flex flex-col gap-5 rounded-3xl border border-chiziq bg-yuza p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">

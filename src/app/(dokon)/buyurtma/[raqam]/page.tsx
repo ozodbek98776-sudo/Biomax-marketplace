@@ -4,10 +4,11 @@ import type { Metadata } from 'next'
 import { ArrowLeft, Banknote, Bike, CheckCircle2, Clock, CreditCard, MapPin, Package, Phone, Send, Store, XCircle } from 'lucide-react'
 import Qobiq, { KONTEYNER } from '@/components/Qobiq'
 import BekorTugmasi from '@/components/sayt/BekorTugmasi'
+import JonliYangilash from '@/components/sayt/JonliYangilash'
 import { Narx } from '@/components/ui/Belgilar'
 import { hisobTalab } from '@/lib/hisob'
 import { mijozBuyurtmasi } from '@/lib/domen/buyurtma-server'
-import { BOSQICHLAR, holatYorligi, mijozBekorQilaOladimi, tolovYorligi } from '@/lib/domen/buyurtma'
+import { BOSQICHLAR, holatYorligi, mijozBekorQilaOladimi, tolovYorligi, yakunlanganmi } from '@/lib/domen/buyurtma'
 import { dokonAloqa } from '@/lib/dokon-server'
 import { telefonMatni } from '@/lib/domen/telefon'
 import { cn } from '@/lib/cn'
@@ -32,8 +33,12 @@ export default async function BuyurtmaSahifasi({ params, searchParams }: { param
   const joriyIndeks = BOSQICHLAR.indexOf(b.holati)
   const qachon = (h: string) => b.tarix.findLast(t => t.holati === h)?.sana
 
+  const yakunlangan = yakunlanganmi(b.holati)
+
   return (
     <Qobiq>
+      {/* Do'kon holatni o'zgartirsa sahifa o'zi yangilanadi. Yakunlangan buyurtma kamdan-kam o'zgaradi */}
+      <JonliYangilash url={`/api/buyurtma/belgi?raqam=${encodeURIComponent(b.raqam)}`} oraliqMs={yakunlangan ? 30_000 : 4_000} />
       <div className={cn(KONTEYNER, 'pb-16 pt-6 sm:pt-8')}>
         <Link href="/kabinet#buyurtmalar" className="-ml-1 inline-flex h-10 items-center gap-1.5 text-[14.5px] font-medium text-siyoh-2 hover:text-siyoh">
           <ArrowLeft size={17} aria-hidden /> Buyurtmalarim
@@ -55,6 +60,15 @@ export default async function BuyurtmaSahifasi({ params, searchParams }: { param
           <div>
             <h1 className="font-raqam text-[24px] font-semibold tracking-[-0.01em] sm:text-[28px]">{b.raqam}</h1>
             <p className="mt-1 text-sm text-xira">{vaqtFormati.format(b.yaratilgan)} da berilgan</p>
+            {!yakunlangan && (
+              <p className="mt-1 flex items-center gap-1.5 text-[12.5px] text-xira">
+                <span className="relative flex h-2 w-2" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-bor opacity-60 motion-reduce:animate-none" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-bor" />
+                </span>
+                Holat o‘zgarsa sahifa o‘zi yangilanadi
+              </p>
+            )}
           </div>
           <span className={cn(
             'rounded-full px-3 py-1.5 text-[13px] font-semibold',
