@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
 import { sozlama } from '@/lib/sozlama'
 import { MAVZU_SKRIPTI } from '@/lib/mavzu'
+import { TAKLIF_SKRIPTI } from '@/lib/ilova'
+import ServisIshchi from '@/components/sayt/ServisIshchi'
 // Shriftlar o'z serverimizdan — Google Fonts'ga so'rov yo'q (tezlik va maxfiylik).
 import '@fontsource/onest/400.css'
 import '@fontsource/onest/500.css'
@@ -19,6 +21,16 @@ export const metadata: Metadata = {
     template: '%s — BioMax',
   },
   description: 'Mahsulotlarni onlayn buyurtma qiling, biz yetkazib beramiz.',
+  applicationName: 'BioMax',
+  // Telefonga o'rnatilganda (PWA): o'z belgisi, brauzer satrisiz ochiladi
+  appleWebApp: { capable: true, title: 'BioMax', statusBarStyle: 'default' },
+  icons: {
+    icon: [
+      { url: '/ikonka/ikonka-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/ikonka/ikonka-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/ikonka/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   // Ommaviy sayt: SEO birinchi darajali talab (TZ Q2).
   openGraph: {
     type: 'website',
@@ -44,9 +56,12 @@ export default function AsosiyTarh({ children }: { children: React.ReactNode }) 
         {/* Sahifa chizilishidan OLDIN mavzu sinfini qo'yadi — qorong'i
             rejimdagi foydalanuvchi bir lahza oq ekran ko'rmasin. */}
         <script dangerouslySetInnerHTML={{ __html: MAVZU_SKRIPTI }} />
+        {/* "Ilovani o'rnatish" taklifini ushlab qoladi — tugma bosilguncha saqlanadi */}
+        <script dangerouslySetInnerHTML={{ __html: TAKLIF_SKRIPTI }} />
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         {children}
+        <ServisIshchi />
         <Toaster position="top-center" richColors />
       </body>
     </html>

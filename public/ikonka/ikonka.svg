@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="BioMax">
+  <!-- Ilova belgisi: brend qizil maydonda oq savat, ichida barg (bio).
+       Harf emas — shriftga bog'liq emas, kichik o'lchamda ham ajralib turadi. -->
+  <rect width="512" height="512" rx="112" fill="#C62828"/>
+  <!-- Savat dastasi -->
+  <path d="M188 204v-24a68 68 0 0 1 136 0v24" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+  <!-- Savat tanasi -->
+  <path d="M120 200h272a26 26 0 0 1 25.9 28.7l-17.6 168A48 48 0 0 1 352.6 440H159.4a48 48 0 0 1-47.7-43.3l-17.6-168A26 26 0 0 1 120 200z" fill="#FFFFFF"/>
+  <!-- Barg -->
+  <path d="M256 262c44 38 44 98 0 136-44-38-44-98 0-136z" fill="#C62828"/>
+  <path d="M256 276v108" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+</svg>
