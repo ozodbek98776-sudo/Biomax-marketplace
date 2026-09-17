@@ -104,6 +104,36 @@ Kirish kodlari va savat bu shartnomalardan chiqmaydi.
 **Muhim:** lokal ERP jonli Telegram sessiyasiga ulanmaydi (`ONLAYN_TELEGRAM_DEV` qo'yilmagan bo'lsa) —
 bitta sessiya ikki joydan ishlatilsa Telegram serverdagisini bekor qilishi mumkin.
 
+## Ilova (PWA) va QR kod
+
+Sayt telefonga **ilova bo'lib o'rnatiladi**: bosh ekranda o'z belgisi bilan
+turadi, brauzer manzil satrisiz ochiladi, internet uzilsa tushunarli sahifa
+chiqadi. Play Market yoki App Store kerak emas.
+
+· `src/app/manifest.ts` — ilova nomi, ranglari, ikonkalari
+· `public/sw.js` — servis-ishchi: oflayn sahifa va doimiy fayllar keshi
+  (narx va buyurtma holati hech qachon keshlanmaydi)
+· `src/app/(dokon)/ilova/page.tsx` — o'rnatish sahifasi (QR aynan shu yerga
+  olib keladi); qurilmaga qarab tugma yoki qadamlar ko'rsatiladi
+· `public/ikonka/` — belgilar. O'zgartirilsa: `node scripts/ikonka-yarat.mjs`
+
+**Cheklov:** QR kod ilovani o'zi o'rnata olmaydi — u faqat sahifani ochadi.
+Android/Chrome'da mijoz bitta tugmani bosadi va telefon ruxsat so'raydi;
+iPhone'da Apple faqat «Ulashish → Bosh ekranga qo'shish» yo'lini beradi
+(sahifa buni rasm bilan ko'rsatadi). O'rnatish uchun sayt **HTTPS** da
+bo'lishi shart.
+
+### QR kodni yasash
+
+```bash
+node scripts/qr-yarat.mjs --manzil https://biomaxmarketplace.store/ilova
+```
+
+Natija `hujjatlar/qr/` da: `qr-ilova.svg/.png` (QR kodning o'zi, markazida
+do'kon belgisi) va `qr-plakat.svg/.png` (A5, chop etishga tayyor: sarlavha,
+QR, uch qadam, sayt manzili). Domen o'zgarsa shu buyruq qayta ishga
+tushiriladi — eski QR ishlamay qoladi.
+
 ## Vercel'ga deploy
 
 Loyiha Vercel uchun tayyor: `postinstall` da `prisma generate`, mintaqa
