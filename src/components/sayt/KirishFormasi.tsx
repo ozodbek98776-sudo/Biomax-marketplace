@@ -119,7 +119,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi, ko
     }
 
     setBand(true)
-    const n = await yubor<{ amalQiladiSoniya: number; devKod?: string }>('/api/kirish/kod', {
+    const n = await yubor<{ amalQiladiSoniya: number; devKod?: string } | (Kirildi & { kodsiz: true })>('/api/kirish/kod', {
       rejim, telefon: tel, ism: ismQiymati.trim(),
     })
     setBand(false)
@@ -137,6 +137,10 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi, ko
       }
       return setXato({ matn: n.x.xato ?? 'Kod yuborilmadi', kod: n.x.kod })
     }
+
+    // Kodni yetkazib bo'lmadi (do'kon tizimi bilan aloqa yo'q) — server
+    // mijozni kodsiz kiritdi, kod bosqichi kerak emas
+    if ('kodsiz' in n.d) return kirildi(n.d)
 
     setDevKod(n.d.devKod ?? null)
     setKod('')

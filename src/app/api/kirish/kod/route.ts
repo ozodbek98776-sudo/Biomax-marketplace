@@ -2,12 +2,19 @@ import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { kirishKodiYoqilgan, sozlama } from '@/lib/sozlama'
 import { kodYetkaz } from '@/lib/kod-yetkazish'
+import { kodsizKir } from '@/lib/kirish-server'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { KOD_AMAL_MS, kodXeshi, kodYarat, yuborishMumkinmi } from '@/lib/domen/kirish-kodi'
 import { XATOLAR } from '@/lib/natija'
 import { ipChegarasi, javob, jsonOqi, ozSaytdanmi, xatoJavob } from '@/lib/api'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * Qaysi yetkazish xatolarida mijoz kodsiz kiritiladi — faqat IKKI TIZIM
+ * ORASIDAGI nosozliklar (`lib/erp/mijoz.ts`): sozlama (kalit) va ulanish.
+ */
+const ZAXIRA_SABABLARI = new Set(['erp_sozlama', 'erp_ulanmadi'])
 // Telegram orqali yetkazish 10 soniyagacha cho'zilishi mumkin
 export const maxDuration = 30
 
@@ -95,6 +102,18 @@ export async function POST(req: NextRequest) {
     // Yetib bormagan kod hisobga olinmaydi: aks holda mijoz 60 soniya kutishga
     // va soatlik chegaraga hech narsa olmay urilib qolardi.
     await db.mpKirishKodi.delete({ where: { id: yozuv.id } }).catch(() => {})
+
+    // ZAXIRA: kodni yetkazib bo'lmadi, chunki ERP bilan aloqa buzuq (kalit
+    // sozlanmagan / mos emas, ERP javob bermadi). Bu mijozning aybi emas —
+    // uni qulflab qo'ymaymiz, kodsiz kiritamiz va jurnalga baland yozamiz.
+    // Mijozga bog'liq xatolarda (Telegram topilmadi, tezlik) zaxira YO'Q —
+    // aks holda begona odam boshqaning raqami bilan kira olardi.
+    if (ZAXIRA_SABABLARI.has(yetkazish.xato.kod)) {
+      console.error(`[kirish] kod yetkazilmadi (${yetkazish.xato.kod}) — ${telefon.slice(0, 6)}***${telefon.slice(-2)} kodsiz kiritildi. ERP aloqasini tuzating: /api/salomatlik`)
+      const k = await kodsizKir(telefon, ism)
+      if (!k.ok) return xatoJavob(k.xato)
+      return javob({ ok: true, telefon, kodsiz: true, ...k.qiymat })
+    }
     return xatoJavob(yetkazish.xato)
   }
 

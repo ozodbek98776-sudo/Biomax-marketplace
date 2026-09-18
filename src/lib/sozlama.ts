@@ -41,13 +41,15 @@ const sxema = z.object({
 
   /**
    * Kirishda bir martalik kod so'raladimi.
-   *   · `ochirilgan` (standart) — telefon raqami bilan darhol kiriladi.
-   *     Do'kon egasining 2026-09-18 dagi qarori: Telegram orqali yetkazish
-   *     sozlanguncha kodsiz.
-   *   · `yoqilgan` — raqam Telegram'ga kelgan kod bilan tasdiqlanadi.
-   *     Qaytarishdan oldin ERP'da MP_HMAC_SECRET sozlangan bo'lishi shart.
+   *   · `yoqilgan` (standart) — raqam Telegram'ga kelgan kod bilan
+   *     tasdiqlanadi. ERP bilan aloqa buzuq bo'lib kodni yetkazib bo'lmasa,
+   *     mijoz qulflanib qolmasligi uchun kodsiz kiritiladi (jurnalga yoziladi)
+   *     — `lib/kirish-server.ts`, `api/kirish/kod`.
+   *   · `ochirilgan` — hech qachon kod so'ralmaydi, raqam bilan darhol.
+   * Tarix: 2026-09-18 da vaqtincha `ochirilgan` edi; o'sha kuni do'kon egasi
+   * Telegram yetkazishni sozlab, kodni qayta yoqishni so'radi.
    */
-  KIRISH_KODI: z.enum(['yoqilgan', 'ochirilgan']).default('ochirilgan'),
+  KIRISH_KODI: z.enum(['yoqilgan', 'ochirilgan']).default('yoqilgan'),
 
   /**
    * Sayt nginx kabi teskari proksi ortidami. `true` bo'lsa mijoz IP'si
