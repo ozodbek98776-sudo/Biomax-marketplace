@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { sozlama } from '@/lib/sozlama'
+import { kirishKodiYoqilgan, sozlama } from '@/lib/sozlama'
 import { seansOch } from '@/lib/hisob'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { KOD_MAKS_URINISH, kodTogrimi } from '@/lib/domen/kirish-kodi'
@@ -18,6 +18,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(req: NextRequest) {
   if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yo‘q' }, 403)
+  if (!kirishKodiYoqilgan) {
+    return xatoJavob({ kod: 'kod_ochirilgan', xabar: 'Kirish kodi hozir talab qilinmaydi — sahifani yangilang' })
+  }
 
   const kutish = ipChegarasi(req, 'tasdiq', 30, 10 * 60_000)
   if (kutish) {

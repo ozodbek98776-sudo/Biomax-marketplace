@@ -40,6 +40,16 @@ const sxema = z.object({
   KOD_KANALI: z.enum(['telegram', 'konsol']).optional(),
 
   /**
+   * Kirishda bir martalik kod so'raladimi.
+   *   · `ochirilgan` (standart) — telefon raqami bilan darhol kiriladi.
+   *     Do'kon egasining 2026-09-18 dagi qarori: Telegram orqali yetkazish
+   *     sozlanguncha kodsiz.
+   *   · `yoqilgan` — raqam Telegram'ga kelgan kod bilan tasdiqlanadi.
+   *     Qaytarishdan oldin ERP'da MP_HMAC_SECRET sozlangan bo'lishi shart.
+   */
+  KIRISH_KODI: z.enum(['yoqilgan', 'ochirilgan']).default('ochirilgan'),
+
+  /**
    * Sayt nginx kabi teskari proksi ortidami. `true` bo'lsa mijoz IP'si
    * `X-Real-IP` dan olinadi (proksi uni o'zi yozadi, mijoz soxtalay olmaydi).
    * Proksisiz `true` qo'yish XAVFLI: sarlavhani mijozning o'zi yuboradi.
@@ -144,6 +154,9 @@ if (!buildBosqichi && sozlama.NODE_ENV === 'production' && sozlama.KOD_KANALI ==
 if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
   console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich bo‘ladi')
 }
+
+/** Kirishda tasdiqlash kodi so'raladimi (yuqoridagi `KIRISH_KODI` ga qarang). */
+export const kirishKodiYoqilgan = sozlama.KIRISH_KODI === 'yoqilgan'
 
 export const ishlabChiqarish = sozlama.NODE_ENV === 'production'
 export const rivojlanish = sozlama.NODE_ENV === 'development'

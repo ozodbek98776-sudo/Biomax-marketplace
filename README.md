@@ -8,7 +8,8 @@ ishlaydi.
 
 **Ishlaydi:**
 - Landing, katalog (qidiruv, kategoriya), mahsulot sahifasi — ERP'dan jonli narx va mavjudlik
-- Ro'yxatdan o'tish / kirish — kod mijozning **Telegram profiliga** keladi (ERP'dagi do'kon akkaunti orqali)
+- Ro'yxatdan o'tish / kirish — **hozircha kodsiz**: telefon raqami (ro'yxatda ism ham) bilan darhol.
+  Telegram orqali tasdiqlash kodi tayyor, bitta sozlama bilan yoqiladi (`KIRISH_KODI`, pastga qarang)
 - Savat, rasmiylashtirish (kuryer yoki olib ketish, vaqt oralig'i, naqd/karta — qabul qilganda)
 - Buyurtma sahifasi: holat chizig'i, mijoz o'zi bekor qilishi (kuryerga topshirilguncha)
 - ERP'da **Onlayn buyurtmalar** paneli: tasdiqlash → yig'ish → yo'lda → topshirildi; har bosqichda mijozga Telegram xabari
@@ -155,6 +156,7 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
 | `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
+| `KIRISH_KODI` | `ochirilgan` (standart) yoki `yoqilgan` — kirishda Telegram kodi | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
@@ -188,10 +190,18 @@ Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
 Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
-### 4. Kirish kodi Telegram'ga ketishi uchun (majburiy)
+### 4. Sayt ↔ ERP aloqasi (majburiy) va kirish kodi
 
-Kod mijozga **ERP orqali** do'konning Telegram akkauntidan boradi. Shuning
-uchun ikkala Vercel loyihasida quyidagilar bir-biriga mos bo'lishi shart:
+**Hozir kirish kodsiz** (2026-09-18, do'kon egasining qarori): mijoz telefon
+raqami bilan darhol kiradi. Xavfi — raqamni bilgan odam o'sha hisobga kira
+oladi (manzil, buyurtmalar). IP bo'yicha tezlik chegarasi saqlangan.
+
+**Kodni qaytarish:** marketplace Vercel'da `KIRISH_KODI=yoqilgan` qo'ying va
+Redeploy qiling. Kod o'chirilmagan, faqat to'xtatilgan — boshqa hech narsa
+o'zgartirilmaydi. Shundan oldin quyidagi aloqa ishlashi shart.
+
+Aloqa kodsiz rejimda ham **kerak**: katalog, narxlar, buyurtmalar va zaxira
+ERP'dan keladi. Ikkala Vercel loyihasida quyidagilar bir-biriga mos bo'lsin:
 
 | Qayerda | O'zgaruvchi | Qiymat |
 |---|---|---|

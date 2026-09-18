@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { sozlama } from '@/lib/sozlama'
+import { kirishKodiYoqilgan, sozlama } from '@/lib/sozlama'
 import { kodYetkaz } from '@/lib/kod-yetkazish'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { KOD_AMAL_MS, kodXeshi, kodYarat, yuborishMumkinmi } from '@/lib/domen/kirish-kodi'
@@ -25,6 +25,10 @@ export const maxDuration = 30
  */
 export async function POST(req: NextRequest) {
   if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yo‘q' }, 403)
+  // Kod o'chirilgan (KIRISH_KODI) — Telegram'ga hech narsa yuborilmaydi
+  if (!kirishKodiYoqilgan) {
+    return xatoJavob({ kod: 'kod_ochirilgan', xabar: 'Kirish kodi hozir talab qilinmaydi — sahifani yangilang' })
+  }
 
   const kutish = ipChegarasi(req, 'kod', 10, 10 * 60_000)
   if (kutish) {

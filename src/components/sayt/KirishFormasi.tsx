@@ -17,6 +17,11 @@ interface Props {
   tovar: { slug: string; nomi: string; narxSom: number | null } | null
   /** Rivojlanish rejimi: kod Telegram'ga yuborilmaydi, ekranda ko'rsatiladi. */
   sinovRejimi: boolean
+  /**
+   * Kirishda Telegram kodi so'raladimi. `false` — raqam bilan darhol kiriladi
+   * (sozlamada `KIRISH_KODI`; 2026-09-18 dan hozircha o'chiq).
+   */
+  kodBilan: boolean
 }
 
 const QAYTA_SONIYA = 60
@@ -27,6 +32,7 @@ function vaqtBelgisi(): number {
 }
 
 interface XatoJavob { kod?: string; xato?: string; tafsilot?: { soniya?: number; sabab?: string } }
+interface Kirildi { yangi: boolean; hisob: { ism: string | null } }
 
 async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } | { ok: false; x: XatoJavob }> {
   try {
@@ -43,12 +49,15 @@ async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } 
 }
 
 /**
- * Ro'yxatdan o'tish / kirish — ikki qadam: raqam, so'ng Telegram'ga kelgan kod.
+ * Ro'yxatdan o'tish / kirish.
+ *
+ * Kod yoqilgan bo'lsa — ikki qadam: raqam, so'ng Telegram'ga kelgan kod.
+ * O'chiq bo'lsa — bitta qadam: raqam (va ro'yxatda ism) bilan darhol kiriladi.
  *
  * Parol yo'q: do'kon mijozi uchun parol eslab qolish — ortiqcha to'siq,
  * telefon raqami esa kuryer uchun baribir kerak.
  */
-export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: Props) {
+export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi, kodBilan }: Props) {
   const router = useRouter()
   const [rejim, setRejim] = useState<Rejim>(boshRejim)
   const [qadam, setQadam] = useState<1 | 2>(1)
@@ -99,6 +108,16 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
     if (!tel) return setXato({ matn: 'Telefon raqamini to‘liq kiriting: 90 123 45 67' })
     if (rejim === 'royxat' && !roziQiymati) return setXato({ matn: 'Davom etish uchun shartlarga rozilik bering' })
 
+    if (!kodBilan) {
+      setBand(true)
+      const k = await yubor<Kirildi>('/api/kirish', { rejim, telefon: tel, ism: ismQiymati.trim() })
+      if (!k.ok) {
+        setBand(false)
+        return setXato({ matn: k.x.xato ?? 'Kirib bo‘lmadi', kod: k.x.kod })
+      }
+      return kirildi(k.d)
+    }
+
     setBand(true)
     const n = await yubor<{ amalQiladiSoniya: number; devKod?: string }>('/api/kirish/kod', {
       rejim, telefon: tel, ism: ismQiymati.trim(),
@@ -133,7 +152,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
     if (qiymat.length !== 6 || band) return
     setXato(null)
     setBand(true)
-    const n = await yubor<{ yangi: boolean; hisob: { ism: string | null } }>('/api/kirish/tasdiq', {
+    const n = await yubor<Kirildi>('/api/kirish/tasdiq', {
       telefon, kod: qiymat, ism: ism.trim(),
     })
     if (!n.ok) {
@@ -143,15 +162,19 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
       requestAnimationFrame(() => kodMaydoni.current?.focus())
       return
     }
+    await kirildi(n.d)
+  }
 
+  /** Hisobga kirildi (kod bilan ham, kodsiz ham) — savat, salom, qaytish. */
+  async function kirildi(d: Kirildi) {
     // Mehmon tanlab qo'ygan mahsulot — endi savatga
     if (tovar) {
       const s = await yubor('/api/savat', { slug: tovar.slug })
       if (s.ok) toast.success(`«${tovar.nomi}» savatga qo‘shildi`)
       else toast.error(s.x.xato ?? 'Mahsulot savatga qo‘shilmadi')
     }
-    const salom = n.d.hisob.ism ? `, ${n.d.hisob.ism}` : ''
-    toast.success(n.d.yangi ? `Xush kelibsiz${salom}! Hisobingiz ochildi.` : `Qaytganingizdan xursandmiz${salom}!`)
+    const salom = d.hisob.ism ? `, ${d.hisob.ism}` : ''
+    toast.success(d.yangi ? `Xush kelibsiz${salom}! Hisobingiz ochildi.` : `Qaytganingizdan xursandmiz${salom}!`)
 
     router.replace(keyin)
     router.refresh()
@@ -272,7 +295,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
     // `method="post"`: sahifa hali yuklanmay turib yuborilsa ham raqam URL'ga
     // (va server jurnaliga) tushmasin
     <form onSubmit={kodSo} method="post" noValidate className="flex flex-col gap-6">
-      <Qadamlar joriy={1} />
+      {kodBilan && <Qadamlar joriy={1} />}
 
       <div role="tablist" aria-label="Kirish usuli" className="grid grid-cols-2 gap-1 rounded-[14px] bg-yuza-2 p-1">
         {([['royxat', 'Ro‘yxatdan o‘tish'], ['kirish', 'Kirish']] as const).map(([r, nomi]) => (
@@ -296,7 +319,13 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
         <h1 className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.025em] sm:text-[30px]">
           {rejim === 'royxat' ? 'Hisob ochish' : 'Hisobga kirish'}
         </h1>
-        <p className="text-[15px] text-xira">Tasdiqlash kodini shu raqamdagi Telegram’ingizga yuboramiz.</p>
+        <p className="text-[15px] text-xira">
+          {kodBilan
+            ? 'Tasdiqlash kodini shu raqamdagi Telegram’ingizga yuboramiz.'
+            : rejim === 'royxat'
+              ? 'Ismingiz va telefon raqamingiz yetarli — kuryer shu raqamga qo‘ng‘iroq qiladi.'
+              : 'Ro‘yxatdan o‘tgan telefon raqamingizni kiriting.'}
+        </p>
       </div>
 
       {tovar && (
@@ -379,7 +408,11 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, sinovRejimi }: 
         className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
       >
         {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
-        {band ? 'Telegram’ga yuborilmoqda…' : !tayyor ? 'Sahifa yuklanmoqda…' : 'Kod yuborish'}
+        {band
+          ? (kodBilan ? 'Telegram’ga yuborilmoqda…' : 'Kirilmoqda…')
+          : !tayyor
+            ? 'Sahifa yuklanmoqda…'
+            : kodBilan ? 'Kod yuborish' : rejim === 'royxat' ? 'Ro‘yxatdan o‘tish' : 'Kirish'}
       </button>
 
       <p className="text-center text-sm text-xira">
