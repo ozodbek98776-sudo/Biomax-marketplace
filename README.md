@@ -61,6 +61,17 @@ bilan **aynan bir xil** bo'lishi shart — `npm run ishga` buni tekshiradi.
 > Neon pooler orqali o'tsa, sessiya sozlamasi ERP ga tarqalib, uning
 > so'rovlarini buzadi (2026-09-13 da sodir bo'lgan).
 
+## Tekshiruvlar
+
+| Buyruq | Vazifasi |
+|---|---|
+| `npm run lint` | ESLint |
+| `npm run tekshir` | Tur tekshiruvi (`tsc`) |
+| `npm run build` | Ishlab chiqarish build'i |
+
+GitHub Actions har push va PR'da uchalasini ishga tushiradi
+([ci.yml](.github/workflows/ci.yml)).
+
 ## Dizayn
 
 [Dizayn kanvasi](https://claude.ai/code/artifact/8056154b-8158-4efd-a6e7-d54cecd628bd) —

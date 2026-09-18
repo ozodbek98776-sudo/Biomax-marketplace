@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tekshiruv:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      # postinstall `prisma generate` ni ham bajaradi (bazaga ulanmaydi)
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run tekshir
+      # Build paytida maxfiy qiymatlar talab qilinmaydi (lib/sozlama.ts)
+      - run: npm run build
