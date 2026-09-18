@@ -96,6 +96,12 @@ html {
 }
 
 h1, h2, h3 { text-wrap: balance; }
+
+/* Sayt ilova sifatida ochilganda "Ilovani o'rnatish" havolasi keraksiz —
+   u allaqachon o'rnatilgan. JS'siz, brauzerning o'zi hal qiladi. */
+@media (display-mode: standalone) {
+  .ornatilganda-yashir { display: none !important; }
+}
 p { text-wrap: pretty; }
 
 /* <details> dagi standart uchburchak — o'rniga o'z ikonkamiz */

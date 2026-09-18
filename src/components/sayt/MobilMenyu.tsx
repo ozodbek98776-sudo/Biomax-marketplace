@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Download, Menu, X } from 'lucide-react'
 import MavzuTugmasi from '@/components/MavzuTugmasi'
 import { SAYT_NAV } from '@/components/sayt/nav'
 
@@ -64,6 +64,14 @@ export default function MobilMenyu({
                 {n.nomi}
               </Link>
             ))}
+
+            <Link
+              href="/ilova"
+              onClick={yop}
+              className="ornatilganda-yashir flex min-h-[52px] items-center gap-2 border-b border-chiziq text-[17px] font-semibold text-siyoh"
+            >
+              <Download size={18} className="text-brend" aria-hidden /> Ilovani o‘rnatish
+            </Link>
 
             <div className="flex items-center justify-between py-4">
               <span className="text-[15px] font-medium text-siyoh-2">Ko‘rinish</span>

@@ -156,7 +156,7 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
 | `KOD_KANALI` | `telegram` | ha |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
-| `SAYT_URL` | doimiy domen, masalan `https://biomax.uz` | yo'q¹ |
+| `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
 
 ¹ Yozilmasa Vercel'ning o'z domeni olinadi. Doimiy domen ulangach yozib
@@ -174,7 +174,21 @@ ishlagani uchun bu xavfli. Sxema o'zgarsa, lokal kompyuterdan:
 npx prisma migrate deploy      # DIRECT_DATABASE_URL (pooler EMAS) ishlatiladi
 ```
 
-### 3. ERP tomonini ulash
+### 3. Domen va ilova
+
+Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
+
+1. `SAYT_URL=https://biomaxmarketplace.store` — SEO havolalari va «o'z
+   saytimi» tekshiruvi shunga qaraydi
+2. ERP `.env` da `MARKETPLACE_OMMAVIY_URL=https://biomaxmarketplace.store` —
+   mijozga ketadigan Telegram xabaridagi buyurtma havolasi
+3. QR kod shu domenga yaratilgan (`hujjatlar/qr/`). Domen o'zgarsa QR ham
+   qayta yasaladi
+
+Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
+avtomatik bajariladi.
+
+### 4. ERP tomonini ulash
 
 ERP `.env` ida `MARKETPLACE_URL` va `MARKETPLACE_OMMAVIY_URL` yangi Vercel
 domeniga qaratiladi, `ERP_HMAC_SECRET` esa ikkalasida bir xil bo'ladi.

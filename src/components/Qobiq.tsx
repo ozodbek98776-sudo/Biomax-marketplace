@@ -159,7 +159,8 @@ function SaytPastki({ kirgan, aloqa: a }: { kirgan: boolean; aloqa: Awaited<Retu
         <div className="flex flex-col gap-1.5 border-t border-chiziq py-5 text-[13px] text-xira sm:flex-row sm:justify-between">
           <span>© {new Date().getFullYear()} {a.nomi}</span>
           <span>
-            <Link href="/ilova" className="hover:text-siyoh">Ilovani o‘rnatish</Link> ·{' '}
+            <Link href="/ilova" className="ornatilganda-yashir hover:text-siyoh">Ilovani o‘rnatish</Link>{' '}
+            <span className="ornatilganda-yashir">·</span>{' '}
             <Link href="/qaytarish" className="hover:text-siyoh">Qaytarish shartlari</Link> · Foydalanish shartlari · Maxfiylik siyosati
           </span>
         </div>
