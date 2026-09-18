@@ -12,6 +12,22 @@ import { SHARTNOMA_VERSIYASI, katalogJavobiSxema, dokonJavobiSxema } from './tur
 // qayta urinish, javob tekshiruvi va xato tarjimasi bitta joyda qoladi.
 
 const SORIQ_MS = 8_000
+
+/**
+ * ERP so'rovni imzo yoki kalit sababli rad etdi. Bu mijozning xatosi emas —
+ * ikki tizim orasidagi SOZLAMA xatosi. Mijozga "Ruxsat yo'q" ko'rsatish
+ * uni chalg'itardi; unga umumiy xabar, jurnalga esa aniq sabab yoziladi.
+ * Kodlar ERP'dagi `lib/marketplace-imzo.ts` bilan bir xil.
+ */
+export const SOZLAMA_XATOLARI: Record<string, string> = {
+  kalit_sozlanmagan: 'ERP serverida MP_HMAC_SECRET o‘rnatilmagan (kamida 32 belgi)',
+  imzo_mos_emas: 'Kalitlar mos emas: ERP dagi MP_HMAC_SECRET va marketplace dagi ERP_HMAC_SECRET bir xil bo‘lishi kerak',
+  imzo_shakli: 'Kalitlar mos emas: ERP dagi MP_HMAC_SECRET va marketplace dagi ERP_HMAC_SECRET bir xil bo‘lishi kerak',
+  imzo_yoq: 'So‘rov imzosiz yetib bordi — oraliq proksi sarlavhalarni kesyapti',
+  muddati_otgan: 'Server soatlari 5 daqiqadan ko‘proq farq qilyapti',
+  kelajak_vaqti: 'Server soatlari 5 daqiqadan ko‘proq farq qilyapti',
+  vaqt_notogri: 'So‘rov vaqti buzilgan',
+}
 /** Faqat vaqtinchalik nosozlikda qayta urinamiz — yozish amallarida EMAS. */
 const QAYTA_URINISH = 2
 
@@ -58,7 +74,11 @@ async function sorov<T>(s: Sorov, sxema: z.ZodType<T>): Promise<Natija<T>> {
       // 4xx — bizning xatomiz, qayta urinish yordam bermaydi.
       if (javob.status >= 400 && javob.status < 500) {
         const j = await javob.json().catch(() => ({})) as { kod?: string; xato?: string; tafsilot?: Record<string, unknown> }
-        return xato(j.kod ?? 'erp_rad_etdi', j.xato ?? 'So‘rov rad etildi', j.tafsilot)
+        if (j.kod && j.kod in SOZLAMA_XATOLARI) {
+          console.error(`[erp] so'rov rad etildi — sozlama xatosi «${j.kod}»: ${SOZLAMA_XATOLARI[j.kod]}`, s.yol)
+          return xato('erp_sozlama', 'Do‘kon tizimi bilan aloqa hozir ishlamayapti. Do‘kon bilan bog‘laning.', { sabab: j.kod })
+        }
+        return xato(j.kod ?? 'erp_rad_etdi', j.xato ?? 'So‘rov rad etildi', { ...j.tafsilot, holat: javob.status })
       }
       if (!javob.ok) {
         oxirgiSabab = `holat_${javob.status}`
@@ -82,7 +102,9 @@ async function sorov<T>(s: Sorov, sxema: z.ZodType<T>): Promise<Natija<T>> {
   }
 
   console.error('[erp] ulanmadi', s.yol, oxirgiSabab)
-  return XATOLAR.erpUlanmadi()
+  const n = XATOLAR.erpUlanmadi()
+  // Sabab (tarmoq / vaqt tugadi / 5xx) salomatlik tekshiruvida ko'rinsin
+  return n.ok ? n : xato(n.xato.kod, n.xato.xabar, { sabab: oxirgiSabab })
 }
 
 // ─── Shartnoma amallari ──────────────────────────────────────────────

@@ -91,7 +91,7 @@ Kirish kodlari va savat bu shartnomalardan chiqmaydi.
 ## Serverga chiqarish
 
 **Marketplace `.env`:**
-- `KOD_KANALI="telegram"` — kod ERP orqali Telegram'ga. `konsol` faqat lokal rivojlanish uchun.
+- `KOD_KANALI` — faqat lokal rivojlanish uchun (`konsol` yoki `telegram`). Ishlab chiqarishda e'tiborga olinmaydi: kod har doim Telegram orqali ketadi.
 - `PROKSI_ORQALI="true"` — nginx ortida. nginx'da: `proxy_set_header X-Real-IP $remote_addr;`
 - `SAYT_URL` — saytning tashqi manzili.
 
@@ -151,10 +151,10 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | O'zgaruvchi | Qiymat | Majburiymi |
 |---|---|---|
 | `DATABASE_URL` | Neon **pooler** manzili (`-pooler.` bor) | ha |
-| `ERP_BASE_URL` | ERP ning tashqi manzili, masalan `https://erp.biomax.uz` | ha |
-| `ERP_HMAC_SECRET` | ERP dagi bilan **bir xil**, kamida 32 belgi | ha |
+| `ERP_BASE_URL` | ERP ning tashqi manzili: `https://www.biomaxx.store` | ha |
+| `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
-| `KOD_KANALI` | `telegram` | ha |
+| `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
@@ -188,7 +188,32 @@ Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
 Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
-### 4. ERP tomonini ulash
+### 4. Kirish kodi Telegram'ga ketishi uchun (majburiy)
+
+Kod mijozga **ERP orqali** do'konning Telegram akkauntidan boradi. Shuning
+uchun ikkala Vercel loyihasida quyidagilar bir-biriga mos bo'lishi shart:
+
+| Qayerda | O'zgaruvchi | Qiymat |
+|---|---|---|
+| Marketplace (Vercel) | `ERP_BASE_URL` | `https://www.biomaxx.store` |
+| Marketplace (Vercel) | `ERP_HMAC_SECRET` | 32+ belgili maxfiy kalit — **X** |
+| ERP (Vercel) | `MP_HMAC_SECRET` | aynan o'sha **X** |
+| ERP (Vercel) | `MARKETPLACE_URL` | `https://www.biomaxmarketplace.store` |
+
+`KOD_KANALI` ishlab chiqarishda **e'tiborga olinmaydi** — kod har doim
+Telegram orqali ketadi (2026-09-18 da `konsol` qolib ketib, hech kim kira
+olmagan edi). Kalitni yaratish:
+`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+
+O'zgaruvchi qo'shilgach **ikkala loyihani ham Redeploy qiling** — Vercel eski
+deployni yangi qiymat bilan qayta ishga tushirmaydi.
+
+**Tekshirish:** `https://www.biomaxmarketplace.store/api/salomatlik` —
+`"holat":"ishlayapti"` bo'lishi kerak. Aks holda `erp.izoh` nima yetishmayotganini
+aytadi (masalan «ERP serverida MP_HMAC_SECRET o'rnatilmagan»). ERP'da ham shu
+tekshiruv bor: **Ilova QR kodi → Onlayn do'konni tekshirish**.
+
+### 5. ERP tomonini ulash
 
 ERP `.env` ida `MARKETPLACE_URL` va `MARKETPLACE_OMMAVIY_URL` yangi Vercel
 domeniga qaratiladi, `ERP_HMAC_SECRET` esa ikkalasida bir xil bo'ladi.

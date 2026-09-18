@@ -121,15 +121,25 @@ function oqi(): Sozlama {
 
 export const sozlama = oqi()
 
-/** Kod kanali: aniq ko'rsatilmasa ishlab chiqarishda Telegram, aks holda konsol. */
+/**
+ * Kirish kodi qaysi kanal orqali ketadi.
+ *
+ * Ishlab chiqarishda HAR DOIM Telegram. `konsol` kanali kodni hech qayerga
+ * yubormaydi (faqat kompyuterda ekranga chiqaradi), ishlab chiqarishda esa
+ * kodni oshkor qilmaslik uchun har bir urinishni rad etadi — ya'ni bu
+ * sozlama bilan hech kim kira olmaydi, uning foydali holati yo'q.
+ * 2026-09-18: Vercel'da `KOD_KANALI=konsol` qolib ketib, jonli saytga hech
+ * kim kira olmadi. Endi bunday qiymat e'tiborga olinmaydi va jurnalga yoziladi.
+ *
+ * Rivojlanishda standart — konsol (lokal ERP jonli Telegram sessiyasiga
+ * ulanmasin); `KOD_KANALI=telegram` bilan haqiqiy yuborishni sinash mumkin.
+ */
 export const kodKanali: 'telegram' | 'konsol' =
-  sozlama.KOD_KANALI ?? (sozlama.NODE_ENV === 'production' ? 'telegram' : 'konsol')
+  sozlama.NODE_ENV === 'production' ? 'telegram' : (sozlama.KOD_KANALI ?? 'konsol')
 
 // Build paytida ogohlantirish bermaymiz: u yerdagi qiymatlar vaqtinchalik.
-if (!buildBosqichi && sozlama.NODE_ENV === 'production' && kodKanali === 'konsol') {
-  // Ishlab chiqarishda kod ekranga chiqarilmaydi (`kod-yetkazish.ts`), lekin
-  // bunday sozlama bilan hech kim kira olmaydi — darhol ko'rinsin.
-  console.error('[sozlama] KOD_KANALI=konsol ishlab chiqarishda — mijozlar kod ololmaydi')
+if (!buildBosqichi && sozlama.NODE_ENV === 'production' && sozlama.KOD_KANALI === 'konsol') {
+  console.warn('[sozlama] KOD_KANALI=konsol ishlab chiqarishda e’tiborga olinmadi — kod Telegram orqali yuboriladi. Bu o‘zgaruvchini o‘chirib qo‘ying.')
 }
 if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
   console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich bo‘ladi')

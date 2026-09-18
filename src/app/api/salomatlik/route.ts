@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { katalog } from '@/lib/erp/mijoz'
+import { SOZLAMA_XATOLARI, katalog } from '@/lib/erp/mijoz'
 
 // Salomatlik tekshiruvi — "sayt ishlayaptimi?" degan savolga aniq javob.
 //
@@ -11,7 +11,16 @@ import { katalog } from '@/lib/erp/mijoz'
 // shunga qaraydi.
 //
 // Maxfiy narsa qaytarilmaydi: kalit, ulanish manzili yoki xato matni
-// ichidagi tafsilot yo'q — faqat "ok / emas" va kechikish.
+// ichidagi tafsilot yo'q — faqat "ok / emas", kechikish va ERP ulanmasa
+// SABABI (qaysi sozlama yetishmayotgani). Sababsiz "nosoz" javobidan
+// muammoni topib bo'lmasdi — 2026-09-18 da shunday bo'lgan.
+
+const ERP_IZOHI: Record<string, string> = {
+  tarmoq: 'ERP manziliga ulanib bo‘lmadi — ERP_BASE_URL ni tekshiring',
+  vaqt_tugadi: 'ERP javob bermadi (vaqt tugadi)',
+  erp_rad_etdi: 'ERP so‘rovni rad etdi — ERP_BASE_URL noto‘g‘ri yoki ERP eski versiyada',
+  erp_shartnoma: 'ERP javobi kutilgan shaklda emas — ERP va marketplace versiyalari farq qiladi',
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -26,10 +35,27 @@ async function olcha<T>(ish: () => Promise<T>): Promise<{ ok: boolean; ms: numbe
   }
 }
 
+/** ERP ulanmasa — mashina o'qiydigan sabab va odam o'qiydigan izoh. */
+async function erpTekshir() {
+  const bosh = performance.now()
+  try {
+    const n = await katalog()
+    const ms = Math.round(performance.now() - bosh)
+    if (n.ok) return { ok: true, ms }
+    const t = n.xato.tafsilot as { sabab?: unknown; holat?: unknown } | undefined
+    const sabab = typeof t?.sabab === 'string' ? t.sabab : n.xato.kod
+    const izoh = SOZLAMA_XATOLARI[sabab] ?? ERP_IZOHI[sabab]
+      ?? (sabab.startsWith('holat_5') ? 'ERP ichki xato qaytardi' : undefined)
+    return { ok: false, ms, sabab, ...(izoh ? { izoh } : {}) }
+  } catch {
+    return { ok: false, ms: Math.round(performance.now() - bosh), sabab: 'nomalum' }
+  }
+}
+
 export async function GET() {
   const [baza, erp] = await Promise.all([
     olcha(() => db.$queryRaw`select 1`),
-    olcha(() => katalog()),
+    erpTekshir(),
   ])
   const hammasi = baza.ok && erp.ok
 
