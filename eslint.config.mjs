@@ -4,7 +4,7 @@ import typescript from 'eslint-config-next/typescript'
 // `eslint-config-next` 16 flat konfiguratsiyani O'ZI beradi.
 // `FlatCompat` orqali o'rash bu versiyada aylanma havola xatosini
 // keltirib chiqaradi ("Converting circular structure to JSON").
-export default [
+const konfiguratsiya = [
   ...koreWebVitals,
   ...typescript,
   {
@@ -16,3 +16,5 @@ export default [
   },
   { ignores: ['.next/**', 'node_modules/**', 'prisma/**'] },
 ]
+
+export default konfiguratsiya

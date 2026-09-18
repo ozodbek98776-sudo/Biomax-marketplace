@@ -73,7 +73,6 @@ async function qrYoli(manzil) {
 function qrSvg({ yol, olcham }, { tomon = 1024, belgiBilan = true } = {}) {
   const chet = 2 // "sokin zona" — QR atrofida bo'sh joy (modul hisobida)
   const jami = olcham + chet * 2
-  const k = tomon / jami
   const belgi = olcham * 0.22
   const belgiX = (jami - belgi) / 2
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${tomon}" height="${tomon}" viewBox="0 0 ${jami} ${jami}" role="img" aria-label="${DOKON} ilovasi — QR kod">
