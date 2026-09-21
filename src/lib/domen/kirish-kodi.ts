@@ -76,7 +76,7 @@ export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: 
         ok: false,
         xato: {
           kod: 'telegram_ulangmagan',
-          xabar: 'Telegram botga /start buyrug\'ini yuboring va qaytadan urinib ko\'ring.',
+          xabar: `Telegram botni ulash kerak:\n\n1. @BioMaxMarketplaceBot ga kiring\n2. /start buyrug'ini yuboring yoki telefon raqamingizni yuboring\n3. Qaytadan urinib ko'ring`,
         },
       }
     }

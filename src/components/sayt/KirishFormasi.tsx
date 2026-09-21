@@ -349,7 +349,7 @@ function XatoQutisi({ xato, onRoyxat }: { xato: { matn: string; kod?: string } |
       {xato && (
         <div role="alert" className="flex items-start gap-2.5 rounded-xl bg-brend-och px-3.5 py-3 text-[14px] leading-snug text-brend">
           <AlertCircle size={18} className="mt-px shrink-0" aria-hidden />
-          <span className="flex-1">
+          <span className="flex-1 whitespace-pre-line">
             {xato.matn}
             {xato.kod === 'hisob_yoq' && (
               <>
