@@ -40,18 +40,20 @@ datasource db {
 /// ballari, nasiya tarixi va oldingi xaridlar bitta joyda qoladi. Bog'lanish
 /// birinchi buyurtmada telefon raqami bo'yicha o'rnatiladi.
 model MpHisob {
-  id           String   @id @default(cuid())
+  id             String   @id @default(cuid())
   /// E.164 ko'rinishida: +998901234567. Yagona identifikator.
-  telefon      String   @unique
-  ism          String?
+  telefon        String   @unique
+  ism            String?
+  /// Telegram chat ID — kirish kodi shu orqali yuboriladi.
+  telegramChatId String?
   /// ERP `Mijoz.id`. Bo'sh bo'lishi mumkin — mijoz hali xarid qilmagan.
-  erpMijozId   String?  @unique
+  erpMijozId     String?  @unique
   /// Telefon SMS kod bilan tasdiqlanganmi. Tasdiqlanmagan hisob
   /// buyurtma bera olmaydi.
-  tasdiqlangan Boolean  @default(false)
-  faol         Boolean  @default(true)
-  yaratilgan   DateTime @default(now())
-  yangilangan  DateTime @updatedAt
+  tasdiqlangan   Boolean  @default(false)
+  faol           Boolean  @default(true)
+  yaratilgan     DateTime @default(now())
+  yangilangan    DateTime @updatedAt
 
   manzillar   MpManzil[]
   buyurtmalar MpBuyurtma[]

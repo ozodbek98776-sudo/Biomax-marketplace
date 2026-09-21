@@ -29,6 +29,15 @@ const sxema = z.object({
   /** Saytning tashqi manzili — havolalar va SEO uchun. */
   SAYT_URL: z.string().url().default('http://localhost:3002'),
 
+  /** Telegram bot token — kirish kodini yuborish uchun. */
+  TELEGRAM_BOT_TOKEN: z.string().optional(),
+
+  /**
+   * Kirish kodi qayerga yuboriladi: 'telegram' yoki 'konsol'.
+   * Lokal rivojlanishda 'konsol' — kod terminal'da ko'rinadi.
+   */
+  KOD_KANALI: z.enum(['telegram', 'konsol']).default('konsol'),
+
   /**
    * Sayt nginx kabi teskari proksi ortidami. `true` bolsa mijoz IP\'si
    * `X-Real-IP` dan olinadi (proksi uni ozi yozadi, mijoz soxtalay olmaydi).
@@ -74,6 +83,8 @@ const ORINBOSAR: Record<string, string> = {
   ERP_HMAC_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SESSION_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SAYT_URL: 'http://localhost:3002',
+  TELEGRAM_BOT_TOKEN: '1234567890:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+  KOD_KANALI: 'konsol',
 }
 
 function oqi(): Sozlama {
