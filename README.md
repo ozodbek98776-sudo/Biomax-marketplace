@@ -8,8 +8,8 @@ ishlaydi.
 
 **Ishlaydi:**
 - Landing, katalog (qidiruv, kategoriya), mahsulot sahifasi — ERP'dan jonli narx va mavjudlik
-- Ro'yxatdan o'tish / kirish — telefon raqami va **Telegram'ga kelgan kod** bilan (ERP'dagi do'kon akkaunti orqali).
-  ERP aloqasi buzuq bo'lsa mijoz qulflanmaydi — kodsiz kiradi (pastga qarang, `KIRISH_KODI`)
+- Ro'yxatdan o'tish / kirish — **ism va telefon raqami** bilan, kodsiz va parolsiz.
+  Telegram kodi hozircha o'chirilgan; bitta sozlama bilan qaytariladi (`KIRISH_KODI`)
 - Savat, rasmiylashtirish (kuryer yoki olib ketish, vaqt oralig'i, naqd/karta — qabul qilganda)
 - Buyurtma sahifasi: holat chizig'i, mijoz o'zi bekor qilishi (kuryerga topshirilguncha)
 - ERP'da **Onlayn buyurtmalar** paneli: tasdiqlash → yig'ish → yo'lda → topshirildi; har bosqichda mijozga Telegram xabari
@@ -167,7 +167,7 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
 | `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
-| `KIRISH_KODI` | `yoqilgan` (standart) yoki `ochirilgan` — kirishda Telegram kodi | yo'q |
+| `KIRISH_KODI` | `ochirilgan` (standart) yoki `yoqilgan` — kirishda Telegram kodi | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
@@ -203,16 +203,18 @@ avtomatik bajariladi.
 
 ### 4. Sayt ↔ ERP aloqasi (majburiy) va kirish kodi
 
-**Kirish kodi yoqilgan** (standart). Mijoz raqamini yozadi, kod do'konning
-Telegram akkauntidan keladi.
+**Kirish kodi o'chirilgan** (standart, 2026-09-21 dan). Mijoz ismi va telefon
+raqamini yozadi va darhol kiradi — Telegram'ga hech narsa yuborilmaydi.
+Vercel'da `KIRISH_KODI` o'zgaruvchisi **umuman bo'lmasligi** kerak (yoki
+`ochirilgan` bo'lsin) — muhit qiymati standartdan ustun turadi.
 
-**Zaxira:** kodni ERP bilan aloqa buzuqligi sababli yetkazib bo'lmasa (kalit
-yo'q / mos emas, ERP javob bermadi), mijoz qulflanib qolmasligi uchun kodsiz
-kiritiladi va jurnalga `[kirish] kod yetkazilmadi` deb yoziladi. Mijozga
-bog'liq holatlarda (raqamda Telegram yo'q, juda ko'p urinish) zaxira yo'q —
-aks holda begona odam boshqaning raqami bilan kira olardi.
-
-Kodni butunlay o'chirish: `KIRISH_KODI=ochirilgan` + Redeploy.
+Kodni qaytarish: `KIRISH_KODI=yoqilgan` + Redeploy. Shunda mijoz raqamini
+yozadi, kod do'konning Telegram akkauntidan keladi va **zaxira** ishlaydi:
+kodni ERP bilan aloqa buzuqligi sababli yetkazib bo'lmasa (kalit yo'q / mos
+emas, ERP javob bermadi), mijoz qulflanib qolmasligi uchun kodsiz kiritiladi
+va jurnalga `[kirish] kod yetkazilmadi` deb yoziladi. Mijozga bog'liq
+holatlarda (raqamda Telegram yo'q, juda ko'p urinish) zaxira yo'q — aks holda
+begona odam boshqaning raqami bilan kira olardi.
 
 Katalog, narxlar, buyurtmalar va zaxira ham ERP'dan keladi, shuning uchun
 aloqa baribir **majburiy**. Ikkala Vercel loyihasida quyidagilar mos bo'lsin:

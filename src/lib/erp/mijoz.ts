@@ -133,19 +133,6 @@ export function rezervBoshat(buyurtmaRaqami: string) {
   )
 }
 
-/**
- * Kirish kodini mijozning Telegram profiliga yetkazish (do'kon akkaunti orqali).
- *
- * Telegram'da raqamni topish va tezlik chegarasi tufayli 10 soniyagacha
- * cho'ziladi. Yozish amali: qayta urinilmaydi — mijoz ikkita xabar olmasin.
- */
-export function kirishKodiYubor(telefon: string, kod: string) {
-  return sorov(
-    { yol: '/api/marketplace/kod-yubor', usul: 'POST', tana: { telefon, kod }, yozish: true, kutish: 25_000 },
-    z.object({ ok: z.literal(true) }),
-  )
-}
-
 /** Do'kon aloqa ma'lumotlari — chekdagi bilan bir xil sozlamalar. */
 export function dokonMalumoti() {
   return sorov(

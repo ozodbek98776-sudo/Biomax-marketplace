@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import {
   AlertTriangle, ArrowRight, Banknote, Clock, Minus, Package, PackageCheck,
   PackageOpen, Plus, Store, Tag,
@@ -13,7 +13,6 @@ import { DOKON, faolHududlarMatni } from '@/lib/dokon'
 import { dokonAloqa } from '@/lib/dokon-server'
 import { narxMatni } from '@/lib/domen/narx'
 import { cn } from '@/lib/cn'
-import { kirishKodiYoqilgan } from '@/lib/sozlama'
 
 // Landing — ro'yxatdan o'tmagan mehmonning birinchi ko'radigan sahifasi.
 //
@@ -156,9 +155,7 @@ export default async function BoshSahifa() {
           </div>
           <ol className="grid gap-4 md:grid-cols-3 lg:gap-6">
             {[
-              ['Ro‘yxatdan o‘ting', kirishKodiYoqilgan
-                ? 'Faqat ism va telefon raqami. Telegram’ingizga kelgan kod bilan tasdiqlaysiz — parol kerak emas.'
-                : 'Faqat ism va telefon raqami — parol ham, kod ham kerak emas.'],
+              ['Ro‘yxatdan o‘ting', 'Faqat ism va telefon raqami — parol ham, kod ham kerak emas.'],
               ['Savatga soling', 'Omborda bor mahsulotlarni tanlang, manzilni xaritada belgilang. Buyurtma do‘konga darhol boradi.'],
               ['Qabul qiling', 'Kuryer olib keladi. Mahsulotni ko‘rib, shundagina naqd yoki karta bilan to‘laysiz.'],
             ].map(([s, m], i) => (

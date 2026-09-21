@@ -7,7 +7,6 @@ import KirishFormasi from '@/components/sayt/KirishFormasi'
 import { joriyHisob } from '@/lib/hisob'
 import { xavfsizQaytish } from '@/lib/seans'
 import { vitrinaTovari } from '@/lib/domen/vitrina'
-import { kirishKodiYoqilgan, rivojlanish } from '@/lib/sozlama'
 
 export const metadata: Metadata = {
   title: 'Kirish yoki ro‘yxatdan o‘tish',
@@ -78,8 +77,6 @@ export default async function KirishSahifasi({ searchParams }: { searchParams: P
             boshRejim={p.rejim === 'kirish' ? 'kirish' : 'royxat'}
             keyin={keyin}
             tovar={tovar}
-            sinovRejimi={rivojlanish}
-            kodBilan={kirishKodiYoqilgan}
           />
         </div>
       </main>

@@ -1,6 +1,5 @@
 import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { kirishKodiYoqilgan } from '@/lib/sozlama'
 import { kodsizKir } from '@/lib/kirish-server'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { XATOLAR } from '@/lib/natija'
@@ -9,20 +8,10 @@ import { ipChegarasi, javob, jsonOqi, ozSaytdanmi, xatoJavob } from '@/lib/api'
 export const dynamic = 'force-dynamic'
 
 /**
- * Kodsiz kirish — telefon raqami (va ro'yxatda ism) bilan darhol.
- *
- * Faqat `KIRISH_KODI=ochirilgan` bo'lganda ishlaydi. Kod yoqilgan bo'lsa bu
- * marshrut yopiq — tekshiruvni chetlab o'tish uchun ishlatib bo'lmaydi.
- *
- * Xavfi ochiq: raqamni bilgan odam o'sha hisobga kira oladi. IP bo'yicha
- * chegara ko'p raqamni ketma-ket sinab ko'rishni sekinlashtiradi.
+ * Kodsiz kirish — telefon raqami (va royxatda ism) bilan darhol.
  */
 export async function POST(req: NextRequest) {
-  if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yo‘q' }, 403)
-
-  if (kirishKodiYoqilgan) {
-    return xatoJavob({ kod: 'kod_kerak', xabar: 'Kirish uchun tasdiqlash kodi kerak — sahifani yangilang' })
-  }
+  if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yoq' }, 403)
 
   const kutish = ipChegarasi(req, 'kirish', 10, 10 * 60_000)
   if (kutish) {
@@ -31,20 +20,20 @@ export async function POST(req: NextRequest) {
   }
 
   const tana = await jsonOqi(req)
-  if (!tana) return xatoJavob({ kod: 'notogri_sorov', xabar: 'So‘rov noto‘g‘ri' })
+  if (!tana) return xatoJavob({ kod: 'notogri_sorov', xabar: 'Sorov notogri' })
 
   const telefon = telefonniTozala(tana.telefon)
-  if (!telefon) return xatoJavob({ kod: 'telefon_notogri', xabar: 'Telefon raqamini to‘liq kiriting: +998 90 123 45 67' })
+  if (!telefon) return xatoJavob({ kod: 'telefon_notogri', xabar: 'Telefon raqamini toliq kiriting: +998 90 123 45 67' })
 
   const rejim = tana.rejim === 'kirish' ? 'kirish' : 'royxat'
   const ism = typeof tana.ism === 'string' ? tana.ism.trim().replace(/\s+/g, ' ') : ''
 
   const mavjud = await db.mpHisob.findUnique({ where: { telefon }, select: { tasdiqlangan: true, faol: true } })
   if (mavjud && !mavjud.faol) {
-    return xatoJavob({ kod: 'hisob_bloklangan', xabar: 'Hisob bloklangan. Do‘kon bilan bog‘laning.' })
+    return xatoJavob({ kod: 'hisob_bloklangan', xabar: 'Hisob bloklangan. Dokon bilan bog\'laning.' })
   }
   if (rejim === 'kirish' && !mavjud?.tasdiqlangan) {
-    return xatoJavob({ kod: 'hisob_yoq', xabar: 'Bu raqam bilan hisob ochilmagan — ro‘yxatdan o‘ting' })
+    return xatoJavob({ kod: 'hisob_yoq', xabar: 'Bu raqam bilan hisob ochilmagan — royxatdan o\'ting' })
   }
   if (!mavjud && (ism.length < 2 || ism.length > 60)) {
     return xatoJavob({ kod: 'ism_notogri', xabar: 'Ismingizni kiriting (2–60 belgi)' })

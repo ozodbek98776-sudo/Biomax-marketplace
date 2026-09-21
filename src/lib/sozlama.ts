@@ -12,49 +12,27 @@ import { z } from 'zod'
 const sxema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
-  /** Marketplace o'z jadvallari uchun. ERP jadvallariga tegmaydi. */
-  DATABASE_URL: z.string().url('DATABASE_URL to‘g‘ri URL bo‘lishi kerak'),
+  /** Marketplace oz jadvallari uchun. ERP jadvallariga tegmaydi. */
+  DATABASE_URL: z.string().url('DATABASE_URL togri URL bolishi kerak'),
 
   /** ERP shartnoma API manzili, masalan http://localhost:3001 */
-  ERP_BASE_URL: z.string().url('ERP_BASE_URL to‘g‘ri URL bo‘lishi kerak'),
+  ERP_BASE_URL: z.string().url('ERP_BASE_URL togri URL bolishi kerak'),
   /**
-   * ERP bilan umumiy HMAC kaliti. Ikkala tomonda BIR XIL bo'lishi shart.
-   * 32 belgidan qisqa kalit qo'pol kuch hujumiga ochiq.
+   * ERP bilan umumiy HMAC kaliti. Ikkala tomonda BIR XIL bolishi shart.
+   * 32 belgidan qisqa kalit qopol kuch hujumiga ochiq.
    */
-  ERP_HMAC_SECRET: z.string().min(32, 'ERP_HMAC_SECRET kamida 32 belgi bo‘lishi kerak'),
+  ERP_HMAC_SECRET: z.string().min(32, 'ERP_HMAC_SECRET kamida 32 belgi bolishi kerak'),
 
-  /** Seans cookie'sini imzolash uchun. */
-  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET kamida 32 belgi bo‘lishi kerak'),
+  /** Seans cookie\'sini imzolash uchun. */
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET kamida 32 belgi bolishi kerak'),
 
   /** Saytning tashqi manzili — havolalar va SEO uchun. */
   SAYT_URL: z.string().url().default('http://localhost:3002'),
 
   /**
-   * Kirish kodi qayerga yuboriladi:
-   *   · `telegram` — ERP orqali mijozning Telegram profiliga (do'konning
-   *     mijozlarga chek yuboradigan akkaunti). Ishlab chiqarishda shu.
-   *   · `konsol` — hech qayerga yuborilmaydi, kod ekranda va jurnalda
-   *     ko'rinadi. FAQAT rivojlanish uchun: lokal ERP jonli Telegram
-   *     sessiyasiga ulanib ketsa, serverdagi sessiya bekor bo'lishi mumkin.
-   */
-  KOD_KANALI: z.enum(['telegram', 'konsol']).optional(),
-
-  /**
-   * Kirishda bir martalik kod so'raladimi.
-   *   · `yoqilgan` (standart) — raqam Telegram'ga kelgan kod bilan
-   *     tasdiqlanadi. ERP bilan aloqa buzuq bo'lib kodni yetkazib bo'lmasa,
-   *     mijoz qulflanib qolmasligi uchun kodsiz kiritiladi (jurnalga yoziladi)
-   *     — `lib/kirish-server.ts`, `api/kirish/kod`.
-   *   · `ochirilgan` — hech qachon kod so'ralmaydi, raqam bilan darhol.
-   * Tarix: 2026-09-18 da vaqtincha `ochirilgan` edi; o'sha kuni do'kon egasi
-   * Telegram yetkazishni sozlab, kodni qayta yoqishni so'radi.
-   */
-  KIRISH_KODI: z.enum(['yoqilgan', 'ochirilgan']).default('yoqilgan'),
-
-  /**
-   * Sayt nginx kabi teskari proksi ortidami. `true` bo'lsa mijoz IP'si
-   * `X-Real-IP` dan olinadi (proksi uni o'zi yozadi, mijoz soxtalay olmaydi).
-   * Proksisiz `true` qo'yish XAVFLI: sarlavhani mijozning o'zi yuboradi.
+   * Sayt nginx kabi teskari proksi ortidami. `true` bolsa mijoz IP\'si
+   * `X-Real-IP` dan olinadi (proksi uni ozi yozadi, mijoz soxtalay olmaydi).
+   * Proksisiz `true` qoyish XAVFLI: sarlavhani mijozning ozi yuboradi.
    */
   PROKSI_ORQALI: z.enum(['true', 'false']).default('false').transform(q => q === 'true'),
 })
@@ -119,46 +97,24 @@ function oqi(): Sozlama {
     const qayta = sxema.safeParse(tuzatilgan)
     if (qayta.success) {
       console.warn(
-        `[sozlama] build paytida quyidagilar yo‘q yoki noto‘g‘ri:\n${satrlar}\n` +
+        `[sozlama] build paytida quyidagilar yoq yoki notogri:\n${satrlar}\n` +
         '[sozlama] build davom etadi, lekin sayt ISHLASHI uchun ular muhit ' +
-        'o‘zgaruvchilarida bo‘lishi SHART (README → "Vercel\'ga deploy").',
+        'ozgaruvchilarida bolishi SHART (README → "Vercel\'ga deploy").',
       )
       return qayta.data
     }
   }
 
-  // Ataylab `throw` — ilova noto'g'ri sozlama bilan ko'tarilmasin.
-  throw new Error(`Muhit sozlamalari noto‘g‘ri:\n${satrlar}\n\n.env.example dan nusxa oling.`)
+  // Ataylab `throw` — ilova notogri sozlama bilan kotarilmasin.
+  throw new Error(`Muhit sozlamalari notogri:\n${satrlar}\n\n.env.example dan nusxa oling.`)
 }
 
 export const sozlama = oqi()
 
-/**
- * Kirish kodi qaysi kanal orqali ketadi.
- *
- * Ishlab chiqarishda HAR DOIM Telegram. `konsol` kanali kodni hech qayerga
- * yubormaydi (faqat kompyuterda ekranga chiqaradi), ishlab chiqarishda esa
- * kodni oshkor qilmaslik uchun har bir urinishni rad etadi — ya'ni bu
- * sozlama bilan hech kim kira olmaydi, uning foydali holati yo'q.
- * 2026-09-18: Vercel'da `KOD_KANALI=konsol` qolib ketib, jonli saytga hech
- * kim kira olmadi. Endi bunday qiymat e'tiborga olinmaydi va jurnalga yoziladi.
- *
- * Rivojlanishda standart — konsol (lokal ERP jonli Telegram sessiyasiga
- * ulanmasin); `KOD_KANALI=telegram` bilan haqiqiy yuborishni sinash mumkin.
- */
-export const kodKanali: 'telegram' | 'konsol' =
-  sozlama.NODE_ENV === 'production' ? 'telegram' : (sozlama.KOD_KANALI ?? 'konsol')
-
 // Build paytida ogohlantirish bermaymiz: u yerdagi qiymatlar vaqtinchalik.
-if (!buildBosqichi && sozlama.NODE_ENV === 'production' && sozlama.KOD_KANALI === 'konsol') {
-  console.warn('[sozlama] KOD_KANALI=konsol ishlab chiqarishda e’tiborga olinmadi — kod Telegram orqali yuboriladi. Bu o‘zgaruvchini o‘chirib qo‘ying.')
-}
 if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
-  console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich bo‘ladi')
+  console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich boladi')
 }
-
-/** Kirishda tasdiqlash kodi so'raladimi (yuqoridagi `KIRISH_KODI` ga qarang). */
-export const kirishKodiYoqilgan = sozlama.KIRISH_KODI === 'yoqilgan'
 
 export const ishlabChiqarish = sozlama.NODE_ENV === 'production'
 export const rivojlanish = sozlama.NODE_ENV === 'development'
