@@ -16,12 +16,7 @@
 // kodning bir qatori ham o'zgarmaydi.
 
 generator client {
-  provider        = "prisma-client-js"
-  // `multiSchema` — jadval nomlari to'liq yoziladi:
-  // "marketplace"."mp_elonlar". Busiz Prisma `search_path` ga tayanardi,
-  // Neon pooler'i (PgBouncer) esa uni startup parametri sifatida
-  // qabul qilmaydi va tranzaksiyalar orasida saqlamaydi ham.
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 // Prisma 7'da ulanish manzili sxemada emas, `prisma.config.ts` da.
