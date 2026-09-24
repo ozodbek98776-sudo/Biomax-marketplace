@@ -277,8 +277,9 @@ Kerak bo'lsa tekshiruvni qo'lda o'chirish: `SOZLAMANI_TEKSHIRMA=1`.
 |---|---|
 | Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa. Build bunga to'xtamaydi — o'zgaruvchini qo'shib, qayta deploy qiling |
 | Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
-| Kod kelmaydi | `ERP_BASE_URL` noto'g'ri yoki ERP da Telegram sessiyasi yo'q |
+| Kod kelmaydi | mijoz botga raqamini ulamagan (`telegram_ulangmagan`), `TELEGRAM_BOT_TOKEN` yo'q yoki webhook ro'yxatdan o'tmagan (`node scripts/webhook-ornat.mjs --holat`) |
 | "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |
+| **Push qilinsa ham sayt eski qolyapti** | Vercel loyihasi GitHub repoga ulanmagan. Tekshirish: repo → Deployments bo'limida `vercel[bot]` yozuvlari bo'lishi kerak; yo'q bo'lsa Vercel → Settings → Git → Connect Git Repository (`main` shoxi). Repo ro'yxatda ko'rinmasa, GitHub'da Vercel ilovasiga shu repoga ruxsat bering |
 
 **Eslatma:** IP bo'yicha tezlik chegarasi server xotirasida (`src/lib/api.ts`).
 Vercel bir nechta nusxada ishlaganda har nusxa o'z hisobini yuritadi. Asosiy
