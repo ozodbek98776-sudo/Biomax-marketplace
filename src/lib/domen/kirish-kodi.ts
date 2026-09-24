@@ -3,7 +3,7 @@ import { createHash, randomInt } from 'node:crypto'
 import { db } from '@/lib/db'
 import { sozlama } from '@/lib/sozlama'
 import { telegramKodYubor } from '@/lib/telegram-bot'
-import type { Natija, DomenXatosi } from '@/lib/natija'
+import type { Natija } from '@/lib/natija'
 
 // Kirish kodi — bir martalik parol (OTP).
 //
@@ -23,7 +23,9 @@ function kodXesh(kod: string): string {
 }
 
 function tasodifiyKod(): string {
-  return String(randomInt(100_000, 999_999))
+  const eng = 10 ** (KOD_UZUNLIGI - 1)
+  // randomInt yuqori chegarani o'z ichiga olmaydi
+  return String(randomInt(eng, eng * 10))
 }
 
 /**

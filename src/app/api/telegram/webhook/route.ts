@@ -11,8 +11,6 @@ const bot = sozlama.TELEGRAM_BOT_TOKEN ? new Bot(sozlama.TELEGRAM_BOT_TOKEN) : n
 if (bot) {
   // /start buyrug'i
   bot.command('start', async (ctx) => {
-    const chatId = ctx.chat.id.toString()
-
     // Telefon raqami yo'q - contact so'raymiz
     await ctx.reply(
       '👋 Assalomu alaykum! BioMax Marketplace botiga xush kelibsiz.\n\n' +
