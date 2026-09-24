@@ -6,15 +6,15 @@ import { rasmOl } from '@/lib/erp/mijoz'
 // Brauzer rasmni bir marta yuklab, abadiy saqlaydi (`immutable`): rasm
 // almashtirilganda katalogdagi versiya (`?v=`) o'zgaradi va manzil ham
 // yangi bo'ladi. Server xotirasida ham kichik kesh: bir rasmni 100 xaridor
-// ochsa, ERP'ga bir marta boriladi.
+// ochsa, bazaga bir marta boriladi.
 
 export const dynamic = 'force-dynamic'
 
 const MAKS_BAYT = 64 * 1024 * 1024
-const kesh = new Map<string, { turi: string; baytlar: ArrayBuffer }>()
+const kesh = new Map<string, { turi: string; baytlar: Buffer }>()
 let jami = 0
 
-function keshgaQoy(kalit: string, q: { turi: string; baytlar: ArrayBuffer }) {
+function keshgaQoy(kalit: string, q: { turi: string; baytlar: Buffer }) {
   kesh.set(kalit, q)
   jami += q.baytlar.byteLength
   // Eng eski yozuvlar chiqariladi (Map qo'shilish tartibini saqlaydi)
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ tova
     if (versiya) keshgaQoy(kalit, rasm)
   }
 
-  return new Response(rasm.baytlar, {
+  return new Response(new Uint8Array(rasm.baytlar), {
     headers: {
       'Content-Type': rasm.turi,
       'Content-Length': String(rasm.baytlar.byteLength),

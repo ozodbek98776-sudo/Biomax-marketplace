@@ -129,7 +129,7 @@ ok(`ERP papkasi: ${rang.x(ERP_PAPKA)}`)
 
 const mpEnv = envOqi(path.join(MP_PAPKA, '.env'))
 if (!mpEnv) toxta('Marketplace .env yo‘q — .env.example dan nusxa oling')
-for (const k of ['DATABASE_URL', 'DIRECT_DATABASE_URL', 'ERP_BASE_URL', 'ERP_HMAC_SECRET', 'SESSION_SECRET']) {
+for (const k of ['DATABASE_URL', 'DIRECT_DATABASE_URL', 'ERP_HMAC_SECRET', 'SESSION_SECRET']) {
   if (!mpEnv[k]) toxta(`Marketplace .env da ${k} yo‘q`)
 }
 // Migratsiya pooler orqali o'tsa ERP buziladi (prisma.config.ts ga qarang)
@@ -139,17 +139,13 @@ if (mpEnv.DIRECT_DATABASE_URL.includes('-pooler.')) {
 ok('Marketplace sozlamalari to‘liq (migratsiya — to‘g‘ridan-to‘g‘ri ulanish)')
 
 const erpEnv = { ...envOqi(path.join(ERP_PAPKA, '.env')), ...envOqi(path.join(ERP_PAPKA, '.env.local')) }
-if (!erpEnv.MP_HMAC_SECRET) toxta('ERP .env da MP_HMAC_SECRET yo‘q — marketplace katalogni ololmaydi')
-// Eng ayyor xato: kalitlar mos emas bo'lsa hech narsa yiqilmaydi,
-// katalog shunchaki "vaqtincha ochilmadi" deb qoladi.
+if (!erpEnv.MP_HMAC_SECRET) toxta('ERP .env da MP_HMAC_SECRET yo‘q — ERP buyurtmalar panelini ocha olmaydi')
+// Eng ayyor xato: kalitlar mos emas bo'lsa hech narsa yiqilmaydi —
+// ERP paneli buyurtmalarni "yuklanmadi" deb ko'rsataveradi.
 if (erpEnv.MP_HMAC_SECRET !== mpEnv.ERP_HMAC_SECRET) {
   toxta('HMAC kalitlari MOS EMAS: ERP MP_HMAC_SECRET ≠ marketplace ERP_HMAC_SECRET')
 }
 ok('HMAC kalitlari ikkala tomonda bir xil')
-
-if (mpEnv.ERP_BASE_URL.replace(/\/$/, '') !== `http://localhost:${ERP_PORT}`) {
-  console.log(`  ${rang.s('!')} ERP_BASE_URL = ${mpEnv.ERP_BASE_URL} (kutilgan http://localhost:${ERP_PORT})`)
-}
 
 for (const [port, nomi] of [[ERP_PORT, 'ERP'], [MP_PORT, 'Marketplace']]) {
   if (!(await portBoshmi(port))) {

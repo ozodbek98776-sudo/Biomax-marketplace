@@ -87,10 +87,32 @@ to'qqizta ekran. Tokenlar `src/app/globals.css` da.
 Mavjud ERP: `C:\Users\Ozodbek\Desktop\konstovar\konstovar`
 (Next.js 16 + Prisma 7 + Neon PostgreSQL)
 
-Marketplace ERP bilan `/api/marketplace/*` shartnomaviy marshrutlari orqali
-gaplashadi — batafsil TZ'ning 7-bo'limida.
+### Ma'lumot qayerdan keladi
 
-Teskari yo'nalish (ERP → marketplace, xuddi shu HMAC kalit, imzoga yo'l ham kiradi):
+ERP va vitrina **bitta PostgreSQL bazasida**: ERP `public`, vitrina
+`marketplace` sxemasida. Shuning uchun katalog HTTP orqali emas, bazadan
+to'g'ridan-to'g'ri o'qiladi:
+
+| Nima | Qayerdan | Izoh |
+|---|---|---|
+| Katalog, narx, mavjudlik | `public.vitrina_katalog` ko'rinishi | real vaqtda, keshsiz |
+| Do'kon nomi, manzil, ish vaqti | `public.sozlamalar` | ERP sozlamalari |
+| Mahsulot rasmi | `public.tovarlar.rasmlar` | versiya bo'yicha keshlanadi |
+| Bandni bo'shatish (bekor qilinganda) | `public.onlayn_rezervlar` | holat `BOSHATILDI` |
+
+Ko'rinish ERP migratsiyasida yaratilgan (`20260924120000_vitrina_korinishi`)
+va **qoidalarni o'zida saqlaydi**: faqat «Onlayn vitrina»ga chiqarilgan,
+faol va qulflanmagan mahsulot; mavjudlik ombor + do'kon yig'indisidan, band
+qilinganlar ayirilib; aksiya amal qilsa aksiya narxi. Aniq qoldiq, kelish
+narxi va ta'minotchi ko'rinishda umuman yo'q — sayt ERP jadvallarini o'qimaydi.
+
+Nega shunday: ilgari katalog ERP'ning HTTP shartnomasidan olinardi va HMAC
+kaliti yo'qolsa yoki ERP javob bermasa sayt bo'shab qolardi (2026-09-18).
+Endi ERP serveri o'chiq bo'lsa ham katalog ochiladi.
+
+Teskari yo'nalish (ERP → marketplace) hamon HTTP va HMAC imzo bilan — ERP
+bizning jadvallarimizga to'g'ridan-to'g'ri yozmaydi, buyurtma qoidalari shu
+loyihada qoladi:
 
 | Marshrut | ERP'dagi joyi |
 |---|---|

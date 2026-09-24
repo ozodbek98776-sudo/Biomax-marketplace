@@ -23,17 +23,6 @@ function imzoMatni(vaqt: string, yol: string, tana: string): string {
   return `${vaqt}\n${yol}\n${tana}`
 }
 
-export function imzoYarat(
-  kalit: string,
-  yol: string,
-  tana: string,
-  vaqt: number = Date.now(),
-): { vaqt: string; imzo: string } {
-  const v = String(vaqt)
-  const imzo = createHmac('sha256', kalit).update(imzoMatni(v, yol, tana)).digest('hex')
-  return { vaqt: v, imzo }
-}
-
 /**
  * Imzoni tekshirish — ERP tomonida ishlatiladi.
  *

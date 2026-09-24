@@ -15,11 +15,13 @@ const sxema = z.object({
   /** Marketplace oz jadvallari uchun. ERP jadvallariga tegmaydi. */
   DATABASE_URL: z.string().url('DATABASE_URL togri URL bolishi kerak'),
 
-  /** ERP shartnoma API manzili, masalan http://localhost:3001 */
-  ERP_BASE_URL: z.string().url('ERP_BASE_URL togri URL bolishi kerak'),
   /**
-   * ERP bilan umumiy HMAC kaliti. Ikkala tomonda BIR XIL bolishi shart.
-   * 32 belgidan qisqa kalit qopol kuch hujumiga ochiq.
+   * ERP bilan umumiy HMAC kaliti — ERP bizga so'rov yuborganda
+   * (buyurtmalar, mijozlar) imzoni tekshirish uchun. Ikkala tomonda BIR XIL
+   * bolishi shart; 32 belgidan qisqa kalit qopol kuch hujumiga ochiq.
+   *
+   * Katalog uchun kerak EMAS: sayt ERP ma'lumotlarini shu bazadagi
+   * `public.vitrina_katalog` ko'rinishidan to'g'ridan-to'g'ri o'qiydi.
    */
   ERP_HMAC_SECRET: z.string().min(32, 'ERP_HMAC_SECRET kamida 32 belgi bolishi kerak'),
 
@@ -80,7 +82,6 @@ const buildBosqichi =
  */
 const ORINBOSAR: Record<string, string> = {
   DATABASE_URL: 'postgresql://build:build@localhost:5432/build',
-  ERP_BASE_URL: 'http://localhost:3001',
   ERP_HMAC_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SESSION_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SAYT_URL: 'http://localhost:3002',

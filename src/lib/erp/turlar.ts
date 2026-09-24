@@ -63,6 +63,8 @@ export const katalogJavobiSxema = z.object({
   vaqt: z.string(),
 })
 
+export type KatalogJavobi = z.infer<typeof katalogJavobiSxema>
+
 export const dokonJavobiSxema = z.object({
   nomi: z.string().nullable(),
   telefon: z.string().nullable(),

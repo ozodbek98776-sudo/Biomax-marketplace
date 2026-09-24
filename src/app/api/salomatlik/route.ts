@@ -1,25 +1,21 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { SOZLAMA_XATOLARI, katalog } from '@/lib/erp/mijoz'
 
 // Salomatlik tekshiruvi — "sayt ishlayaptimi?" degan savolga aniq javob.
 //
-// Faqat "server javob berdi" yetarli emas: marketplace ikki narsaga
-// tayanadi — o'z bazasi va ERP shartnomasi. Ikkalasidan biri tushsa
-// sahifa ochiladi-yu, katalog bo'sh chiqadi. Shu yerda ikkalasi ham
-// alohida tekshiriladi, ishga tushirgich va kelajakdagi monitoring
-// shunga qaraydi.
+// Faqat "server javob berdi" yetarli emas: sayt ikki narsaga tayanadi —
+// o'z jadvallari (`marketplace` sxema) va ERP ma'lumotlari (`public`
+// sxemadagi `vitrina_katalog` ko'rinishi). Ikkalasi shu yerda alohida
+// tekshiriladi, ishga tushirgich va monitoring shunga qaraydi.
 //
-// Maxfiy narsa qaytarilmaydi: kalit, ulanish manzili yoki xato matni
-// ichidagi tafsilot yo'q — faqat "ok / emas", kechikish va ERP ulanmasa
-// SABABI (qaysi sozlama yetishmayotgani). Sababsiz "nosoz" javobidan
-// muammoni topib bo'lmasdi — 2026-09-18 da shunday bo'lgan.
+// Maxfiy narsa qaytarilmaydi: ulanish manzili ham, xato matni ham yo'q —
+// faqat "ok / emas", kechikish va nosozlik SABABI. Sababsiz "nosoz"
+// javobidan muammoni topib bo'lmasdi — 2026-09-18 da shunday bo'lgan.
 
-const ERP_IZOHI: Record<string, string> = {
-  tarmoq: 'ERP manziliga ulanib bo‘lmadi — ERP_BASE_URL ni tekshiring',
-  vaqt_tugadi: 'ERP javob bermadi (vaqt tugadi)',
-  erp_rad_etdi: 'ERP so‘rovni rad etdi — ERP_BASE_URL noto‘g‘ri yoki ERP eski versiyada',
-  erp_shartnoma: 'ERP javobi kutilgan shaklda emas — ERP va marketplace versiyalari farq qiladi',
+const IZOHLAR: Record<string, string> = {
+  korinish_yoq: 'ERP migratsiyasi qo‘llanmagan: public.vitrina_katalog ko‘rinishi yo‘q',
+  ruxsat_yoq: 'Baza foydalanuvchisiga public sxemani o‘qish ruxsati berilmagan',
+  baza: 'Bazaga ulanib bo‘lmadi — DATABASE_URL ni tekshiring',
 }
 
 export const dynamic = 'force-dynamic'
@@ -35,20 +31,20 @@ async function olcha<T>(ish: () => Promise<T>): Promise<{ ok: boolean; ms: numbe
   }
 }
 
-/** ERP ulanmasa — mashina o'qiydigan sabab va odam o'qiydigan izoh. */
+/** ERP ma'lumotlari o'qilyaptimi — mashina o'qiydigan sabab va izoh bilan. */
 async function erpTekshir() {
   const bosh = performance.now()
   try {
-    const n = await katalog()
-    const ms = Math.round(performance.now() - bosh)
-    if (n.ok) return { ok: true, ms }
-    const t = n.xato.tafsilot as { sabab?: unknown; holat?: unknown } | undefined
-    const sabab = typeof t?.sabab === 'string' ? t.sabab : n.xato.kod
-    const izoh = SOZLAMA_XATOLARI[sabab] ?? ERP_IZOHI[sabab]
-      ?? (sabab.startsWith('holat_5') ? 'ERP ichki xato qaytardi' : undefined)
-    return { ok: false, ms, sabab, ...(izoh ? { izoh } : {}) }
-  } catch {
-    return { ok: false, ms: Math.round(performance.now() - bosh), sabab: 'nomalum' }
+    const q = await db.$queryRawUnsafe<{ n: number }[]>(
+      'SELECT count(*)::int AS n FROM public.vitrina_katalog',
+    )
+    return { ok: true, ms: Math.round(performance.now() - bosh), tovarlar: Number(q[0]?.n ?? 0) }
+  } catch (e) {
+    const matn = e instanceof Error ? e.message : ''
+    const sabab = /does not exist/i.test(matn) ? 'korinish_yoq'
+      : /permission denied/i.test(matn) ? 'ruxsat_yoq'
+      : 'baza'
+    return { ok: false, ms: Math.round(performance.now() - bosh), sabab, izoh: IZOHLAR[sabab] }
   }
 }
 
