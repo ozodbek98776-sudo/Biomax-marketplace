@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'node:crypto'
 import { Bot, webhookCallback } from 'grammy'
 import { sozlama } from '@/lib/sozlama'
 import { db } from '@/lib/db'
+import { telefonniTozala } from '@/lib/domen/telefon'
 
-// Telegram webhook endpoint
-// Bot bu yerga xabarlarni yuboradi
+// Telegram bot webhook'i: mijoz botga raqamini ulashadi, chat ID bazaga
+// yoziladi va kirish kodlari shu chatga boradi (`lib/domen/kirish-kodi.ts`).
 
-const bot = sozlama.TELEGRAM_BOT_TOKEN ? new Bot(sozlama.TELEGRAM_BOT_TOKEN) : null
+export const dynamic = 'force-dynamic'
+
+/**
+ * Webhook maxfiy kaliti.
+ *
+ * Telegram har so'rovga `X-Telegram-Bot-Api-Secret-Token` sarlavhasini
+ * qo'shadi va grammy uni tekshiradi. Bu SHART: kalitsiz webhook'ga istalgan
+ * odam soxta "contact" xabarini yuborib, O'ZINING chat ID'sini BEGONA telefon
+ * raqamiga bog'lab qo'yishi va o'sha raqamning kirish kodini olishi mumkin edi.
+ *
+ * Kalit bot tokenidan hosil qilinadi — alohida muhit o'zgaruvchisi kerak emas,
+ * tokenni bilmagan odam kalitni ham topa olmaydi.
+ */
+function webhookKaliti(token: string): string {
+  return createHash('sha256').update(`webhook:${token}`).digest('hex').slice(0, 48)
+}
+
+const token = sozlama.TELEGRAM_BOT_TOKEN
+const bot = token ? new Bot(token) : null
+const KALIT = token ? webhookKaliti(token) : ''
 
 if (bot) {
   // /start buyrug'i
   bot.command('start', async (ctx) => {
-    // Telefon raqami yo'q - contact so'raymiz
     await ctx.reply(
       '👋 Assalomu alaykum! BioMax Marketplace botiga xush kelibsiz.\n\n' +
       '📱 Telefon raqamingizni yuboring (pastdagi tugmani bosing).\n' +
@@ -33,10 +53,22 @@ if (bot) {
     const contact = ctx.message.contact
     if (!contact) return
 
+    // FAQAT o'z raqami. Telegram'da kitobchadagi boshqa odamning kontaktini
+    // ham yuborish mumkin — u holda begona chat ID shu raqamga bog'lanib,
+    // kirish kodi o'sha odamga ketardi.
+    if (!contact.user_id || contact.user_id !== ctx.from?.id) {
+      await ctx.reply(
+        '⚠️ Faqat O‘Z raqamingizni yuboring — pastdagi «📱 Telefon raqamni yuborish» tugmasi orqali.',
+      )
+      return
+    }
+
     const chatId = ctx.chat.id.toString()
-    const telefon = contact.phone_number.startsWith('+') 
-      ? contact.phone_number 
-      : `+${contact.phone_number}`
+    const telefon = telefonniTozala(contact.phone_number)
+    if (!telefon) {
+      await ctx.reply('⚠️ Raqamni o‘qib bo‘lmadi. Raqamingiz +998 bilan boshlanishi kerak.')
+      return
+    }
 
     try {
       await db.mpHisob.upsert({
@@ -79,7 +111,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const callback = webhookCallback(bot, 'std/http')
+    // grammy sarlavhadagi kalitni o'zi tekshiradi — mos kelmasa 401
+    const callback = webhookCallback(bot, 'std/http', { secretToken: KALIT })
     return await callback(req)
   } catch (error) {
     console.error('[telegram-webhook] xato:', error)
@@ -87,19 +120,29 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET so'rovi - webhook o'rnatish
-export async function GET() {
+/**
+ * Webhook'ni Telegram'da ro'yxatdan o'tkazish (bir marta, qo'lda).
+ *
+ * `GET /api/telegram/webhook?kalit=<webhookKaliti>` — kalitsiz javob
+ * bermaydi: bu yerda bot sozlamasi o'zgaradi va webhook holati ko'rinadi.
+ * Kalitni jurnaldan olish mumkin (server ishga tushganda yozilmaydi) —
+ * uni hisoblash uchun bot tokeni kerak, u esa faqat egada.
+ */
+export async function GET(req: NextRequest) {
   if (!bot) {
     return NextResponse.json({ error: 'Bot not configured' }, { status: 500 })
+  }
+  if (req.nextUrl.searchParams.get('kalit') !== KALIT) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
   try {
     const webhookUrl = `${sozlama.SAYT_URL}/api/telegram/webhook`
-    await bot.api.setWebhook(webhookUrl)
-    
+    await bot.api.setWebhook(webhookUrl, { secret_token: KALIT })
+
     const info = await bot.api.getWebhookInfo()
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       webhook: webhookUrl,
       info,
     })

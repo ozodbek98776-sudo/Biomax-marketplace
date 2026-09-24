@@ -1,6 +1,6 @@
 import 'server-only'
 import { Bot } from 'grammy'
-import { sozlama, ishlabChiqarish } from '@/lib/sozlama'
+import { sozlama, kodKanali } from '@/lib/sozlama'
 import type { DomenXatosi } from '@/lib/natija'
 
 // Telegram bot orqali kirish kodi yuborish.
@@ -36,8 +36,8 @@ export async function telegramKodYubor(
   chatId: number | string,
   kod: string,
 ): Promise<KodYuborishNatija> {
-  // Rivojlanishda konsol
-  if (!ishlabChiqarish && sozlama.KOD_KANALI === 'konsol') {
+  // Rivojlanishda konsol (ishlab chiqarishda `kodKanali` har doim telegram)
+  if (kodKanali === 'konsol') {
     console.info(`[telegram-kod] chat=${chatId} → ${kod}`)
     return { ok: true, kanal: 'konsol', devKod: kod }
   }

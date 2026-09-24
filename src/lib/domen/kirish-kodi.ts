@@ -1,7 +1,7 @@
 import 'server-only'
 import { createHash, randomInt } from 'node:crypto'
 import { db } from '@/lib/db'
-import { sozlama } from '@/lib/sozlama'
+import { kodKanali } from '@/lib/sozlama'
 import { telegramKodYubor } from '@/lib/telegram-bot'
 import type { Natija } from '@/lib/natija'
 
@@ -54,26 +54,16 @@ export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: 
     }
   }
 
-  const kod = tasodifiyKod()
-  const amalQiladi = new Date(Date.now() + AMAL_MUDDATI_MS)
-
-  await db.mpKirishKodi.create({
-    data: {
-      telefon,
-      kodXesh: kodXesh(kod),
-      amalQiladi,
-    },
-  })
-
-  // Telegram orqali yuborish
-  if (sozlama.KOD_KANALI === 'telegram') {
-    // Chat ID bazadan olish
+  // Telegram ulanmaganini OLDIN aniqlaymiz: aks holda yozuv yaratiladi va
+  // mijoz kodni olmagan holda 1 daqiqaga "juda tez" deb bloklanadi.
+  let chatId: string | null = null
+  if (kodKanali === 'telegram') {
     const hisob = await db.mpHisob.findUnique({
       where: { telefon },
       select: { telegramChatId: true },
     })
-
-    if (!hisob?.telegramChatId) {
+    chatId = hisob?.telegramChatId ?? null
+    if (!chatId) {
       return {
         ok: false,
         xato: {
@@ -82,9 +72,25 @@ export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: 
         },
       }
     }
+  }
 
-    const natija = await telegramKodYubor(hisob.telegramChatId, kod)
+  const kod = tasodifiyKod()
+  const amalQiladi = new Date(Date.now() + AMAL_MUDDATI_MS)
+
+  const yozuv = await db.mpKirishKodi.create({
+    data: {
+      telefon,
+      kodXesh: kodXesh(kod),
+      amalQiladi,
+    },
+  })
+
+  // Telegram orqali yuborish
+  if (chatId) {
+    const natija = await telegramKodYubor(chatId, kod)
     if (!natija.ok) {
+      // Yetkazilmagan kod bazada qolmasin — mijoz darhol qayta urina oladi
+      await db.mpKirishKodi.delete({ where: { id: yozuv.id } }).catch(() => {})
       return { ok: false, xato: natija.xato }
     }
 
@@ -102,7 +108,8 @@ export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: 
 export async function kirishKodiTasdiq(
   telefon: string,
   kod: string,
-): Promise<Natija<{ yangi: boolean; hisobId: string }>> {
+  ism?: string,
+): Promise<Natija<{ yangi: boolean; hisobId: string; ism: string | null }>> {
   const xesh = kodXesh(kod)
   const hozir = new Date()
 
@@ -120,6 +127,26 @@ export async function kirishKodiTasdiq(
 
   const kodYozuvi = kodlar[0]
   if (!kodYozuvi) {
+    // Xesh mos kelmadi — urinish shu raqamning amaldagi kodiga yoziladi,
+    // aks holda hisoblagich hech qachon oshmaydi va kodni tanlab olish
+    // (brute force) hech nima bilan cheklanmaydi.
+    const joriy = await db.mpKirishKodi.findFirst({
+      where: { telefon, amalQiladi: { gte: hozir }, ishlatilgan: false },
+      orderBy: { yaratilgan: 'desc' },
+    })
+    if (joriy) {
+      const urinishlar = joriy.urinishlar + 1
+      await db.mpKirishKodi.update({
+        where: { id: joriy.id },
+        data: { urinishlar, ishlatilgan: urinishlar >= MAKS_URINISH },
+      })
+      if (urinishlar >= MAKS_URINISH) {
+        return {
+          ok: false,
+          xato: { kod: 'juda_kop_urinish', xabar: 'Juda kop notogri urinish. Yangi kod soring.' },
+        }
+      }
+    }
     return {
       ok: false,
       xato: {
@@ -158,21 +185,25 @@ export async function kirishKodiTasdiq(
 
   const yangi = !hisob
 
+  const toza = ism?.trim().replace(/\s+/g, ' ').slice(0, 60) || null
+
   if (!hisob) {
     hisob = await db.mpHisob.create({
       data: {
         telefon,
+        ism: toza,
         tasdiqlangan: true,
       },
     })
-  } else if (!hisob.tasdiqlangan) {
+  } else if (!hisob.tasdiqlangan || (toza && !hisob.ism)) {
+    // Ism faqat bo'sh bo'lsa yoziladi — mijoz keyin kabinetdan o'zgartiradi
     hisob = await db.mpHisob.update({
       where: { id: hisob.id },
-      data: { tasdiqlangan: true },
+      data: { tasdiqlangan: true, ...(toza && !hisob.ism ? { ism: toza } : {}) },
     })
   }
 
-  return { ok: true, qiymat: { yangi, hisobId: hisob.id } }
+  return { ok: true, qiymat: { yangi, hisobId: hisob.id, ism: hisob.ism } }
 }
 
 /**

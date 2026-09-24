@@ -114,7 +114,11 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
     if (kodQiymati.length !== 6) return setXato({ matn: 'Kodni toliq kiriting' })
 
     setBand(true)
-    const k = await yubor<Kirildi>('/api/kirish/tasdiq', { telefon: telefonniTozala(raqam), kod: kodQiymati })
+    const k = await yubor<Kirildi>('/api/kirish/tasdiq', {
+      telefon: telefonniTozala(raqam),
+      kod: kodQiymati,
+      ...(rejim === 'royxat' && ism.trim().length >= 2 ? { ism: ism.trim() } : {}),
+    })
     setBand(false)
 
     if (!k.ok) {

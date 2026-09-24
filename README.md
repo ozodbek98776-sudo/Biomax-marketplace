@@ -8,8 +8,8 @@ ishlaydi.
 
 **Ishlaydi:**
 - Landing, katalog (qidiruv, kategoriya), mahsulot sahifasi — ERP'dan jonli narx va mavjudlik
-- Ro'yxatdan o'tish / kirish — **ism va telefon raqami** bilan, kodsiz va parolsiz.
-  Telegram kodi hozircha o'chirilgan; bitta sozlama bilan qaytariladi (`KIRISH_KODI`)
+- Ro'yxatdan o'tish / kirish — telefon raqami va **Telegram botga kelgan kod** bilan,
+  parolsiz. Mijoz avval botga raqamini ulashadi (pastga qarang, «Kirish kodi»)
 - Savat, rasmiylashtirish (kuryer yoki olib ketish, vaqt oralig'i, naqd/karta — qabul qilganda)
 - Buyurtma sahifasi: holat chizig'i, mijoz o'zi bekor qilishi (kuryerga topshirilguncha)
 - ERP'da **Onlayn buyurtmalar** paneli: tasdiqlash → yig'ish → yo'lda → topshirildi; har bosqichda mijozga Telegram xabari
@@ -166,8 +166,8 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_BASE_URL` | ERP ning tashqi manzili: `https://www.biomaxx.store` | ha |
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
+| `TELEGRAM_BOT_TOKEN` | @BotFather bergan token — kirish kodi shu bot orqali ketadi | ha |
 | `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
-| `KIRISH_KODI` | `ochirilgan` (standart) yoki `yoqilgan` — kirishda Telegram kodi | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
@@ -201,20 +201,36 @@ Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
 Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
-### 4. Sayt ↔ ERP aloqasi (majburiy) va kirish kodi
+### 4. Kirish kodi (Telegram bot)
 
-**Kirish kodi o'chirilgan** (standart, 2026-09-21 dan). Mijoz ismi va telefon
-raqamini yozadi va darhol kiradi — Telegram'ga hech narsa yuborilmaydi.
-Vercel'da `KIRISH_KODI` o'zgaruvchisi **umuman bo'lmasligi** kerak (yoki
-`ochirilgan` bo'lsin) — muhit qiymati standartdan ustun turadi.
+Mijoz raqamini yozadi, bir martalik 6 xonali kod **do'konning botiga**
+keladi. Kod bazada faqat SHA-256 xeshi bo'lib turadi, 5 daqiqa amal qiladi,
+5 ta noto'g'ri urinishdan keyin kuyadi; bitta raqamga daqiqada bitta kod,
+bitta IP dan 10 daqiqada 5 ta so'rov va 15 ta tekshiruv.
 
-Kodni qaytarish: `KIRISH_KODI=yoqilgan` + Redeploy. Shunda mijoz raqamini
-yozadi, kod do'konning Telegram akkauntidan keladi va **zaxira** ishlaydi:
-kodni ERP bilan aloqa buzuqligi sababli yetkazib bo'lmasa (kalit yo'q / mos
-emas, ERP javob bermadi), mijoz qulflanib qolmasligi uchun kodsiz kiritiladi
-va jurnalga `[kirish] kod yetkazilmadi` deb yoziladi. Mijozga bog'liq
-holatlarda (raqamda Telegram yo'q, juda ko'p urinish) zaxira yo'q — aks holda
-begona odam boshqaning raqami bilan kira olardi.
+**Mijoz uchun tartib:** botga kirib `/start` → «📱 Telefon raqamni yuborish».
+Shunda chat ID raqamga bog'lanadi va kodlar o'sha chatga boradi. Bog'lanmagan
+bo'lsa sayt shu yo'riqnomani ko'rsatadi (`telegram_ulangmagan`).
+
+**Sozlash (bir marta):**
+
+1. @BotFather da bot yarating → `TELEGRAM_BOT_TOKEN` ni Vercel'ga qo'ying
+2. Deploydan keyin webhook'ni ro'yxatdan o'tkazing:
+
+```bash
+node scripts/webhook-ornat.mjs https://www.biomaxmarketplace.store
+node scripts/webhook-ornat.mjs --holat     # holatni ko'rish
+```
+
+Webhook maxfiy kalit bilan himoyalangan (kalit bot tokenidan hosil qilinadi).
+Kalitsiz hech kim soxta «kontakt» xabari yuborib, o'z chat ID'sini begona
+raqamga bog'lay olmaydi. Bot faqat **o'z** raqamini qabul qiladi —
+kitobchadan boshqa odamning kontakti yuborilsa rad etiladi.
+
+`KOD_KANALI` ishlab chiqarishda e'tiborga olinmaydi: kod har doim Telegram
+orqali ketadi (2026-09-18 da `konsol` qolib ketib, hech kim kira olmagan edi).
+
+### 5. Sayt ↔ ERP aloqasi (majburiy)
 
 Katalog, narxlar, buyurtmalar va zaxira ham ERP'dan keladi, shuning uchun
 aloqa baribir **majburiy**. Ikkala Vercel loyihasida quyidagilar mos bo'lsin:
@@ -226,9 +242,7 @@ aloqa baribir **majburiy**. Ikkala Vercel loyihasida quyidagilar mos bo'lsin:
 | ERP (Vercel) | `MP_HMAC_SECRET` | aynan o'sha **X** |
 | ERP (Vercel) | `MARKETPLACE_URL` | `https://www.biomaxmarketplace.store` |
 
-`KOD_KANALI` ishlab chiqarishda **e'tiborga olinmaydi** — kod har doim
-Telegram orqali ketadi (2026-09-18 da `konsol` qolib ketib, hech kim kira
-olmagan edi). Kalitni yaratish:
+HMAC kalitini yaratish:
 `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 O'zgaruvchi qo'shilgach **ikkala loyihani ham Redeploy qiling** — Vercel eski

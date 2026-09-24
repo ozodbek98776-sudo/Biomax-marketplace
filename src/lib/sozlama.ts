@@ -35,6 +35,7 @@ const sxema = z.object({
   /**
    * Kirish kodi qayerga yuboriladi: 'telegram' yoki 'konsol'.
    * Lokal rivojlanishda 'konsol' — kod terminal'da ko'rinadi.
+   * Ishlab chiqarishda bu qiymat E'TIBORGA OLINMAYDI (pastdagi `kodKanali`).
    */
   KOD_KANALI: z.enum(['telegram', 'konsol']).default('konsol'),
 
@@ -125,6 +126,22 @@ export const sozlama = oqi()
 // Build paytida ogohlantirish bermaymiz: u yerdagi qiymatlar vaqtinchalik.
 if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
   console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich boladi')
+}
+
+/**
+ * Kod qaysi kanal orqali ketadi.
+ *
+ * Ishlab chiqarishda HAR DOIM Telegram. `konsol` u yerda kodni hech qayerga
+ * yubormaydi, lekin mijozga "kod yuborildi" deb ko'rsatiladi — ya'ni hech kim
+ * kira olmaydi va sabab ko'rinmaydi. 2026-09-18 da aynan shu holat yuz bergan
+ * (Vercel'da `KOD_KANALI=konsol` qolib ketgan edi), shuning uchun bu qiymat
+ * ishlab chiqarishda e'tiborga olinmaydi va jurnalga ogohlantirish yoziladi.
+ */
+export const kodKanali: 'telegram' | 'konsol' =
+  sozlama.NODE_ENV === 'production' ? 'telegram' : sozlama.KOD_KANALI
+
+if (!buildBosqichi && sozlama.NODE_ENV === 'production' && sozlama.KOD_KANALI === 'konsol') {
+  console.warn('[sozlama] KOD_KANALI=konsol ishlab chiqarishda e\'tiborga olinmadi — kod Telegram orqali yuboriladi. Bu o\'zgaruvchini o\'chirib qo\'ying.')
 }
 
 export const ishlabChiqarish = sozlama.NODE_ENV === 'production'
