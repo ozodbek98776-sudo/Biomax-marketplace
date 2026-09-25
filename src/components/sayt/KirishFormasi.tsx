@@ -2,40 +2,22 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ArrowLeft, Check, Loader2, Send } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Narx } from '@/components/ui/Belgilar'
-import { mahalliyQism, telefonMatni, telefonniTozala } from '@/lib/domen/telefon'
+import { mahalliyQism, telefonniTozala } from '@/lib/domen/telefon'
 import { cn } from '@/lib/cn'
 import { useGidratatsiya } from '@/lib/gidratatsiya'
 
 type Rejim = 'royxat' | 'kirish'
-type Bosqich = 'telefon' | 'kod'
 
 interface Props {
   boshRejim: Rejim
   keyin: string
   tovar: { slug: string; nomi: string; narxSom: number | null } | null
-  /**
-   * Kirishda Telegram kodi so'raladimi (`KIRISH_KODI`). `false` — ism va
-   * raqam bilan bir bosishda ro'yxatdan o'tadi yoki kiradi.
-   */
-  kodBilan: boolean
-  /**
-   * Kod qaysi yo'l bilan ketadi (serverda aniqlanadi):
-   *   · `bot`     — Telegram botimiz; «Kod olish» bosilganda bot yangi oynada ochiladi
-   *   · `gateway` — raqamning o'ziga (Telegram Gateway), hech narsa ochilmaydi
-   *   · `konsol`  — rivojlanish, kod terminalda
-   */
-  kodYoli: 'bot' | 'gateway' | 'konsol'
-  /** Bot @username'i (faqat `bot` yo'lida) */
-  bot: string | null
 }
 
-interface XatoJavob { kod?: string; xato?: string; tafsilot?: { soniya?: number; sabab?: string; bot?: string } }
-
-/** Kod qaysi yo'l bilan ketdi — mijozga qayerdan qidirishni aytish uchun. */
-type Kanal = 'gateway' | 'telegram' | 'konsol' | 'bot_ulash'
+interface XatoJavob { kod?: string; xato?: string }
 interface Kirildi { yangi: boolean; hisob: { ism: string | null } }
 
 async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } | { ok: false; x: XatoJavob }> {
@@ -53,47 +35,40 @@ async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } 
 }
 
 /**
- * Royxatdan otish / kirish.
+ * Ro'yxatdan o'tish / kirish — bitta bosishda.
  *
- * Ism va telefon raqami bilan darhol kiriladi - kod soralmayd i.
- * Parol yoq: dokon mijozi uchun parol eslab qolish — ortiqcha tosiq,
- * telefon raqami esa kuryer uchun baribir kerak.
+ * Ism va telefon raqami yetarli: kod ham, parol ham yo'q. Do'kon mijozi uchun
+ * parol eslab qolish ortiqcha to'siq, telefon raqami esa kuryer uchun
+ * baribir kerak. 2026-09-25: Telegram kodi (bot, START) butunlay olib
+ * tashlandi — mijozlar uni tushunmasdi.
  */
-export default function KirishFormasi({ boshRejim, keyin, tovar, kodBilan, kodYoli, bot }: Props) {
+export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
   const router = useRouter()
   const [rejim, setRejim] = useState<Rejim>(boshRejim)
-  const [bosqich, setBosqich] = useState<Bosqich>('telefon')
   const [ism, setIsm] = useState('')
   const [raqam, setRaqam] = useState('')
-  const [kod, setKod] = useState('')
   const [rozi, setRozi] = useState(false)
   const [xato, setXato] = useState<{ matn: string; kod?: string } | null>(null)
   const [band, setBand] = useState(false)
-  const [qaytaYuborish, setQaytaYuborish] = useState(60)
-  const [kanal, setKanal] = useState<Kanal>('telegram')
-  /** Telegram yangi oynada ochildimi (brauzer bloklasa — tugma ko'rsatiladi) */
-  const [oynaOchildi, setOynaOchildi] = useState(false)
-  /** Botga hali ulanmagan mijoz uchun: t.me/<bot>?start=kirish */
-  const [botHavola, setBotHavola] = useState<string | null>(null)
-  // JS ulanguncha yuborish o'chiq — aks holda brauzer formani o'zi yuborib sahifani qayta yuklaydi
+
+  // Sahifa to'liq yuklanmaguncha tugma bosilmasin — aks holda brauzer
+  // formani oddiy POST qilib yuborib, sahifa qayta yuklanardi
   const tayyor = useGidratatsiya()
   const ismMaydoni = useRef<HTMLInputElement>(null)
   const raqamMaydoni = useRef<HTMLInputElement>(null)
-  const kodMaydoni = useRef<HTMLInputElement>(null)
   const roziMaydoni = useRef<HTMLInputElement>(null)
 
   const telefon = telefonniTozala(raqam)
 
   function rejimniAlmashtir(r: Rejim) {
     setRejim(r)
-    setBosqich('telefon')
-    setKod('')
     setXato(null)
   }
 
-  async function kodYubor(e?: React.FormEvent) {
+  async function yuborish(e?: React.FormEvent) {
     e?.preventDefault()
     setXato(null)
+    // Brauzer avtomatik to'ldirgan qiymatlar onChange'siz kelishi mumkin
     const ismQiymati = ism || ismMaydoni.current?.value || ''
     const raqamQiymati = raqam || mahalliyQism(raqamMaydoni.current?.value ?? '')
     const roziQiymati = rozi || !!roziMaydoni.current?.checked
@@ -103,92 +78,25 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, kodBilan, kodYo
     const tel = telefonniTozala(raqamQiymati)
 
     if (rejim === 'royxat' && ismQiymati.trim().length < 2) return setXato({ matn: 'Ismingizni kiriting' })
-    if (!tel) return setXato({ matn: 'Telefon raqamini toliq kiriting: 90 123 45 67' })
+    if (!tel) return setXato({ matn: 'Telefon raqamini to‘liq kiriting: 90 123 45 67' })
     if (rejim === 'royxat' && !roziQiymati) return setXato({ matn: 'Davom etish uchun shartlarga rozilik bering' })
 
-    // Kodsiz: bitta so'rov — hisob ochiladi (yoki topiladi) va seans boshlanadi
-    if (!kodBilan) {
-      setBand(true)
-      const n = await yubor<Kirildi>('/api/kirish', { rejim, telefon: tel, ism: ismQiymati.trim() })
+    setBand(true)
+    const n = await yubor<Kirildi>('/api/kirish', { rejim, telefon: tel, ism: ismQiymati.trim() })
+    if (!n.ok) {
       setBand(false)
-      if (!n.ok) return setXato({ matn: n.x.xato ?? 'Kirib bo‘lmadi', kod: n.x.kod })
-      return kirildi(n.d)
+      return setXato({ matn: n.x.xato ?? 'Kirib bo‘lmadi', kod: n.x.kod })
     }
-
-    // Botni SHU bosishning o'zida ochamiz: `await` dan keyin ochilgan oynani
-    // brauzerlar "reklama oynasi" deb bloklaydi. Telegram o'zi START
-    // tugmasini ko'rsatadi; bot kodni shu zahoti yuboradi.
-    const havola = kodYoli === 'bot' && bot ? `https://t.me/${bot}?start=kirish` : null
-    if (havola) {
-      const oyna = window.open(havola, '_blank')
-      if (oyna) oyna.opener = null
-      setBotHavola(havola)
-      setOynaOchildi(!!oyna)
-    }
-
-    setBand(true)
-    const k = await yubor<{ kanal: Kanal }>('/api/kirish/kod', { telefon: tel })
-    setBand(false)
-
-    if (!k.ok) {
-      // Botga ulanmagan: ko'rsatma devori o'rniga bitta tugma. Mijoz botda
-      // «START» va «Raqamni yuborish» ni bosadi — kod o'sha zahoti keladi,
-      // shuning uchun kod maydonini darhol ko'rsatamiz.
-      if (k.x.kod === 'telegram_ulangmagan' && (havola || k.x.tafsilot?.bot)) {
-        setBotHavola(havola ?? `https://t.me/${k.x.tafsilot!.bot}?start=kirish`)
-        setKanal('bot_ulash')
-        setBosqich('kod')
-        setQaytaYuborish(0)
-        return
-      }
-      return setXato({ matn: k.x.xato ?? 'Kod yuborib bolmadi', kod: k.x.kod })
-    }
-
-    setKanal(k.d.kanal)
-    // Kod bot orqali ketgan bo'lsa havola qoladi — "Telegram'ni ochish" uchun
-    if (k.d.kanal !== 'telegram') setBotHavola(null)
-    setBosqich('kod')
-    setQaytaYuborish(60)
-    const timer = setInterval(() => {
-      setQaytaYuborish(prev => {
-        if (prev <= 1) {
-          clearInterval(timer)
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-
-  async function kodTasdiq(e?: React.FormEvent) {
-    e?.preventDefault()
-    setXato(null)
-    const kodQiymati = kod || kodMaydoni.current?.value || ''
-    if (kodQiymati !== kod) setKod(kodQiymati)
-
-    if (kodQiymati.length !== 6) return setXato({ matn: 'Kodni toliq kiriting' })
-
-    setBand(true)
-    const k = await yubor<Kirildi>('/api/kirish/tasdiq', {
-      telefon: telefonniTozala(raqam),
-      kod: kodQiymati,
-      ...(rejim === 'royxat' && ism.trim().length >= 2 ? { ism: ism.trim() } : {}),
-    })
-    setBand(false)
-
-    if (!k.ok) {
-      return setXato({ matn: k.x.xato ?? 'Kod notogri', kod: k.x.kod })
-    }
-    return kirildi(k.d)
+    await kirildi(n.d)
   }
 
   /** Hisobga kirildi — savat, salom, qaytish. */
   async function kirildi(d: Kirildi) {
-    // Mehmon tanlab qoygan mahsulot — endi savatga
+    // Mehmon tanlab qo'ygan mahsulot — endi savatga
     if (tovar) {
       const s = await yubor('/api/savat', { slug: tovar.slug })
-      if (s.ok) toast.success(`«${tovar.nomi}» savatga qoshildi`)
-      else toast.error(s.x.xato ?? 'Mahsulot savatga qoshilmadi')
+      if (s.ok) toast.success(`«${tovar.nomi}» savatga qo‘shildi`)
+      else toast.error(s.x.xato ?? 'Mahsulot savatga qo‘shilmadi')
     }
     const salom = d.hisob.ism ? `, ${d.hisob.ism}` : ''
     toast.success(d.yangi ? `Xush kelibsiz${salom}! Hisobingiz ochildi.` : `Qaytganingizdan xursandmiz${salom}!`)
@@ -200,256 +108,125 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, kodBilan, kodYo
   return (
     // `method="post"`: sahifa hali yuklanmay turib yuborilsa ham raqam URL'ga
     // (va server jurnaliga) tushmasin
-    <form onSubmit={bosqich === 'telefon' ? kodYubor : kodTasdiq} method="post" noValidate className="flex flex-col gap-6">
-      {bosqich === 'telefon' ? (
-        <>
-          <div role="tablist" aria-label="Kirish usuli" className="grid grid-cols-2 gap-1 rounded-[14px] bg-yuza-2 p-1">
-            {([['royxat', 'Royxatdan otish'], ['kirish', 'Kirish']] as const).map(([r, nomi]) => (
-              <button
-                key={r}
-                type="button"
-                role="tab"
-                aria-selected={rejim === r}
-                onClick={() => rejimniAlmashtir(r)}
-                className={cn(
-                  'h-11 rounded-[11px] text-[15px] transition',
-                  rejim === r ? 'bg-yuza font-semibold text-siyoh shadow-[0_1px_3px_rgba(26,20,22,.1)]' : 'font-medium text-xira hover:text-siyoh',
-                )}
-              >
-                {nomi}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.025em] sm:text-[30px]">
-              {rejim === 'royxat' ? 'Hisob ochish' : 'Hisobga kirish'}
-            </h1>
-            <p className="text-[15px] text-xira">
-              {rejim === 'royxat'
-                ? kodBilan
-                  ? 'Ismingiz va telefon raqamingiz — Telegram orqali kod yuboramiz.'
-                  : 'Ismingiz va telefon raqamingiz yetarli — parol ham, kod ham kerak emas.'
-                : 'Royxatdan otgan telefon raqamingizni kiriting.'}
-            </p>
-          </div>
-
-          {tovar && (
-            <div className="flex items-center gap-3 rounded-[14px] border border-chiziq bg-yuza p-3">
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[12.5px] text-xira">Tanlagan mahsulotingiz</span>
-                <span className="truncate text-sm font-medium">{tovar.nomi}</span>
-                <Narx som={tovar.narxSom} className="text-[14.5px]" />
-              </span>
-              <span className="whitespace-nowrap rounded-full bg-bor-och px-2.5 py-1 text-[11.5px] font-semibold text-bor">Saqlanadi</span>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-4">
-            {rejim === 'royxat' && (
-              <label className="flex flex-col gap-[7px]">
-                <span className="text-sm font-semibold">Ismingiz</span>
-                <input
-                  ref={ismMaydoni}
-                  name="ism"
-                  defaultValue={ism}
-                  onChange={e => setIsm(e.target.value)}
-                  autoComplete="name"
-                  maxLength={60}
-                  placeholder="Masalan, Dilnoza"
-                  suppressHydrationWarning
-                  className="h-[52px] rounded-[13px] border border-chiziq bg-yuza px-4 text-base outline-none transition placeholder:text-xira focus:border-2 focus:border-brend focus:px-[15px] focus:shadow-[0_0_0_4px_var(--color-brend-och)]"
-                />
-              </label>
-            )}
-
-            <label className="flex flex-col gap-[7px]">
-              <span className="text-sm font-semibold">Telefon raqami</span>
-              <span className="flex h-[52px] items-stretch overflow-hidden rounded-[13px] border border-chiziq bg-yuza transition focus-within:border-2 focus-within:border-brend focus-within:shadow-[0_0_0_4px_var(--color-brend-och)]">
-                <span className="flex items-center border-r border-chiziq bg-qogoz px-3.5 font-raqam text-[15px] font-medium text-siyoh-2">+998</span>
-                <input
-                  ref={raqamMaydoni}
-                  name="telefon"
-                  defaultValue={raqam}
-                  onChange={e => {
-                    const f = mahalliyQism(e.target.value)
-                    if (e.target.value !== f) e.target.value = f
-                    setRaqam(f)
-                  }}
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel-national"
-                  placeholder="90 123 45 67"
-                  suppressHydrationWarning
-                  className="min-w-0 flex-1 bg-transparent px-3.5 font-raqam text-base font-medium outline-none placeholder:text-chiziq-2"
-                />
-                {telefon && <Check size={18} className="mr-3.5 self-center text-bor" aria-label="Raqam to'g'ri" />}
-              </span>
-            </label>
-
-            {rejim === 'royxat' && (
-              <label className="flex cursor-pointer items-start gap-[11px] text-sm leading-normal text-siyoh-2">
-                <input ref={roziMaydoni} name="rozi" type="checkbox" defaultChecked={rozi} onChange={e => setRozi(e.target.checked)} className="peer sr-only" />
-                <span
-                  aria-hidden
-                  className="mt-px flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border border-chiziq-2 bg-yuza text-white transition peer-checked:border-brend peer-checked:bg-brend peer-focus-visible:ring-2 peer-focus-visible:ring-brend peer-focus-visible:ring-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100"
-                >
-                  <Check size={15} strokeWidth={3} />
-                </span>
-                <span>Foydalanish shartlari va maxfiylik siyosatiga roziman</span>
-              </label>
-            )}
-          </div>
-
-          <XatoQutisi xato={xato} onRoyxat={() => rejimniAlmashtir('royxat')} />
-
+    <form onSubmit={yuborish} method="post" noValidate className="flex flex-col gap-6">
+      <div role="tablist" aria-label="Kirish usuli" className="grid grid-cols-2 gap-1 rounded-[14px] bg-yuza-2 p-1">
+        {([['royxat', 'Ro‘yxatdan o‘tish'], ['kirish', 'Kirish']] as const).map(([r, nomi]) => (
           <button
-            type="submit"
-            disabled={band || !tayyor}
-            aria-busy={!tayyor || band}
-            className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
+            key={r}
+            type="button"
+            role="tab"
+            aria-selected={rejim === r}
+            onClick={() => rejimniAlmashtir(r)}
+            className={cn(
+              'h-11 rounded-[11px] text-[15px] transition',
+              rejim === r ? 'bg-yuza font-semibold text-siyoh shadow-[0_1px_3px_rgba(26,20,22,.1)]' : 'font-medium text-xira hover:text-siyoh',
+            )}
           >
-            {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
-            {band
-              ? (kodBilan ? 'Kod yuborilmoqda…' : rejim === 'royxat' ? 'Hisob ochilmoqda…' : 'Kirilmoqda…')
-              : !tayyor
-                ? 'Sahifa yuklanmoqda…'
-                : !kodBilan
-                  ? (rejim === 'royxat' ? 'Ro‘yxatdan o‘tish' : 'Kirish')
-                  : kodYoli === 'bot' ? 'Telegram orqali kod olish' : 'Kod olish'}
+            {nomi}
           </button>
+        ))}
+      </div>
 
-          <p className="text-center text-sm text-xira">
-            {rejim === 'royxat' ? 'Hisobingiz bormi? ' : 'Hisobingiz yoqmi? '}
-            <button type="button" onClick={() => rejimniAlmashtir(rejim === 'royxat' ? 'kirish' : 'royxat')} className="font-semibold text-brend hover:text-brend-quyuq">
-              {rejim === 'royxat' ? 'Kirish' : 'Royxatdan otish'}
-            </button>
-          </p>
-        </>
-      ) : (
-        <>
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.025em] sm:text-[30px]">
-              Kodni kiriting
-            </h1>
-            <p className="text-[15px] text-xira">
-              {kanal === 'bot_ulash' ? (
-                <>Kod Telegram botimizda. <span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span></>
-              ) : kanal === 'gateway' ? (
-                <><span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram&apos;dagi «Verification Codes» xabarini oching.</>
-              ) : (
-                <>✅ Kod Telegram botimizga yuborildi. <span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span></>
-              )}
-              {' '}
-              <button
-                type="button"
-                onClick={() => {
-                  setBosqich('telefon')
-                  setXato(null)
-                  setBotHavola(null)
-                  setOynaOchildi(false)
-                }}
-                className="font-semibold text-brend hover:text-brend-quyuq"
-              >
-                Tahrirlash
-              </button>
-            </p>
-          </div>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-[28px] font-extrabold leading-[1.15] tracking-[-0.025em] sm:text-[30px]">
+          {rejim === 'royxat' ? 'Hisob ochish' : 'Hisobga kirish'}
+        </h1>
+        <p className="text-[15px] text-xira">
+          {rejim === 'royxat'
+            ? 'Ismingiz va telefon raqamingiz yetarli — parol ham, kod ham kerak emas.'
+            : 'Ro‘yxatdan o‘tgan telefon raqamingizni kiriting.'}
+        </p>
+      </div>
 
-          {botHavola && (
-            <div className="flex flex-col gap-3 rounded-[16px] border border-chiziq bg-yuza p-4">
-              {oynaOchildi && (
-                <p className="text-[14.5px] font-semibold text-siyoh">
-                  Telegram yangi oynada ochildi.
-                </p>
-              )}
-              <a
-                href={botHavola}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  'flex items-center justify-center gap-2 rounded-[13px] font-semibold text-white transition',
-                  oynaOchildi
-                    ? 'h-11 bg-[#229ED9]/90 text-[15px] hover:bg-[#1c8fc4]'
-                    : 'h-[52px] bg-[#229ED9] text-[16px] hover:bg-[#1c8fc4]',
-                )}
-              >
-                <Send size={oynaOchildi ? 17 : 19} aria-hidden />
-                {oynaOchildi ? 'Telegram\'ni qayta ochish' : 'Telegram\'da ochish'}
-              </a>
-              {kanal === 'bot_ulash' ? (
-                <ol className="flex flex-col gap-1.5 text-[14px] text-siyoh-2">
-                  <li><span className="font-semibold text-siyoh">1.</span> Telegram&apos;da <b>START</b> tugmasini bosing</li>
-                  <li><span className="font-semibold text-siyoh">2.</span> «📱 Raqamni tasdiqlash» ni bosing — kod o‘sha zahoti keladi</li>
-                  <li><span className="font-semibold text-siyoh">3.</span> Kodni shu yerga kiriting</li>
-                </ol>
-              ) : (
-                <p className="text-[14px] text-siyoh-2">Bot yuborgan 6 raqamli kodni pastga kiriting.</p>
-              )}
-              {kanal === 'bot_ulash' && (
-                <p className="text-[13px] text-xira">Raqamni tasdiqlash faqat birinchi marta — keyingi safar kod darhol keladi.</p>
-              )}
-            </div>
-          )}
+      {tovar && (
+        <div className="flex items-center gap-3 rounded-[14px] border border-chiziq bg-yuza p-3">
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-[12.5px] text-xira">Tanlagan mahsulotingiz</span>
+            <span className="truncate text-sm font-medium">{tovar.nomi}</span>
+            <Narx som={tovar.narxSom} className="text-[14.5px]" />
+          </span>
+          <span className="whitespace-nowrap rounded-full bg-bor-och px-2.5 py-1 text-[11.5px] font-semibold text-bor">Saqlanadi</span>
+        </div>
+      )}
 
+      <div className="flex flex-col gap-4">
+        {rejim === 'royxat' && (
           <label className="flex flex-col gap-[7px]">
-            <span className="text-sm font-semibold">6 raqamli kod</span>
+            <span className="text-sm font-semibold">Ismingiz</span>
             <input
-              ref={kodMaydoni}
-              name="kod"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              autoComplete="one-time-code"
-              placeholder="000000"
-              defaultValue={kod}
-              onChange={e => {
-                const v = e.target.value.replace(/\D/g, '').slice(0, 6)
-                if (e.target.value !== v) e.target.value = v
-                setKod(v)
-              }}
-              autoFocus={!botHavola}
+              ref={ismMaydoni}
+              name="ism"
+              defaultValue={ism}
+              onChange={e => setIsm(e.target.value)}
+              autoComplete="name"
+              maxLength={60}
+              placeholder="Masalan, Dilnoza"
               suppressHydrationWarning
-              className="h-[52px] rounded-[13px] border border-chiziq bg-yuza px-4 text-center font-raqam text-[22px] font-semibold tracking-[0.3em] outline-none transition placeholder:text-chiziq-2 focus:border-2 focus:border-brend focus:px-[15px] focus:shadow-[0_0_0_4px_var(--color-brend-och)]"
+              className="h-[52px] rounded-[13px] border border-chiziq bg-yuza px-4 text-base outline-none transition placeholder:text-xira focus:border-2 focus:border-brend focus:px-[15px] focus:shadow-[0_0_0_4px_var(--color-brend-och)]"
             />
           </label>
+        )}
 
-          <XatoQutisi xato={xato} onRoyxat={() => rejimniAlmashtir('royxat')} />
+        <label className="flex flex-col gap-[7px]">
+          <span className="text-sm font-semibold">Telefon raqami</span>
+          <span className="flex h-[52px] items-stretch overflow-hidden rounded-[13px] border border-chiziq bg-yuza transition focus-within:border-2 focus-within:border-brend focus-within:shadow-[0_0_0_4px_var(--color-brend-och)]">
+            <span className="flex items-center border-r border-chiziq bg-qogoz px-3.5 font-raqam text-[15px] font-medium text-siyoh-2">+998</span>
+            <input
+              ref={raqamMaydoni}
+              name="telefon"
+              defaultValue={raqam}
+              onChange={e => {
+                const f = mahalliyQism(e.target.value)
+                if (e.target.value !== f) e.target.value = f
+                setRaqam(f)
+              }}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel-national"
+              placeholder="90 123 45 67"
+              suppressHydrationWarning
+              className="min-w-0 flex-1 bg-transparent px-3.5 font-raqam text-base font-medium outline-none placeholder:text-chiziq-2"
+            />
+            {telefon && <Check size={18} className="mr-3.5 self-center text-bor" aria-label="Raqam to‘g‘ri" />}
+          </span>
+        </label>
 
-          <button
-            type="submit"
-            disabled={band || !tayyor}
-            aria-busy={!tayyor || band}
-            className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
-          >
-            {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
-            {band ? 'Tekshirilmoqda…' : !tayyor ? 'Sahifa yuklanmoqda…' : 'Tasdiqlash'}
-          </button>
+        {rejim === 'royxat' && (
+          <label className="flex cursor-pointer items-start gap-[11px] text-sm leading-normal text-siyoh-2">
+            <input ref={roziMaydoni} name="rozi" type="checkbox" defaultChecked={rozi} onChange={e => setRozi(e.target.checked)} className="peer sr-only" />
+            <span
+              aria-hidden
+              className="mt-px flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[7px] border border-chiziq-2 bg-yuza text-white transition peer-checked:border-brend peer-checked:bg-brend peer-focus-visible:ring-2 peer-focus-visible:ring-brend peer-focus-visible:ring-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100"
+            >
+              <Check size={15} strokeWidth={3} />
+            </span>
+            <span>Foydalanish shartlari va maxfiylik siyosatiga roziman</span>
+          </label>
+        )}
+      </div>
 
-          <p className="text-center text-sm text-xira">
-            {qaytaYuborish > 0 ? (
-              `Kodni ${qaytaYuborish} soniyadan keyin qayta yuborishingiz mumkin`
-            ) : (
-              <button type="button" onClick={() => kodYubor()} disabled={band} className="font-semibold text-brend hover:text-brend-quyuq disabled:opacity-70">
-                Kodni qayta yuborish
-              </button>
-            )}
-          </p>
+      <XatoQutisi xato={xato} onRoyxat={() => rejimniAlmashtir('royxat')} />
 
-          <button
-            type="button"
-            onClick={() => {
-              setBosqich('telefon')
-              setXato(null)
-            }}
-            className="flex items-center justify-center gap-1.5 text-sm font-semibold text-siyoh-2 hover:text-siyoh"
-          >
-            <ArrowLeft size={16} />
-            Orqaga
-          </button>
-        </>
-      )}
+      <button
+        type="submit"
+        disabled={band || !tayyor}
+        aria-busy={!tayyor || band}
+        className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
+      >
+        {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
+        {band
+          ? (rejim === 'royxat' ? 'Hisob ochilmoqda…' : 'Kirilmoqda…')
+          : !tayyor
+            ? 'Sahifa yuklanmoqda…'
+            : rejim === 'royxat' ? 'Ro‘yxatdan o‘tish' : 'Kirish'}
+      </button>
+
+      <p className="text-center text-sm text-xira">
+        {rejim === 'royxat' ? 'Hisobingiz bormi? ' : 'Hisobingiz yo‘qmi? '}
+        <button type="button" onClick={() => rejimniAlmashtir(rejim === 'royxat' ? 'kirish' : 'royxat')} className="font-semibold text-brend hover:text-brend-quyuq">
+          {rejim === 'royxat' ? 'Kirish' : 'Ro‘yxatdan o‘tish'}
+        </button>
+      </p>
     </form>
   )
 }
@@ -466,7 +243,7 @@ function XatoQutisi({ xato, onRoyxat }: { xato: { matn: string; kod?: string } |
               <>
                 {' '}
                 <button type="button" onClick={onRoyxat} className="inline-flex items-center gap-1 font-semibold underline underline-offset-2">
-                  Royxatdan otish <ArrowLeft size={14} className="rotate-180" aria-hidden />
+                  Ro‘yxatdan o‘tish <ArrowLeft size={14} className="rotate-180" aria-hidden />
                 </button>
               </>
             )}

@@ -8,8 +8,8 @@ ishlaydi.
 
 **Ishlaydi:**
 - Landing, katalog (qidiruv, kategoriya), mahsulot sahifasi — ERP'dan jonli narx va mavjudlik
-- Ro'yxatdan o'tish / kirish — **ism va telefon raqami** bilan, parolsiz va kodsiz.
-  Telegram kodi tayyor turibdi — bitta sozlama bilan yoqiladi (`KIRISH_KODI`, pastga qarang)
+- Ro'yxatdan o'tish / kirish — **ism va telefon raqami** bilan, bir bosishda: parol ham,
+  kod ham yo'q (Telegram kodi 2026-09-25 da butunlay olib tashlandi)
 - Savat, rasmiylashtirish (kuryer yoki olib ketish, vaqt oralig'i, naqd/karta — qabul qilganda)
 - Buyurtma sahifasi: holat chizig'i, mijoz o'zi bekor qilishi (kuryerga topshirilguncha)
 - ERP'da **Onlayn buyurtmalar** paneli: tasdiqlash → yig'ish → yo'lda → topshirildi; har bosqichda mijozga Telegram xabari
@@ -126,7 +126,6 @@ Kirish kodlari va savat bu shartnomalardan chiqmaydi.
 ## Serverga chiqarish
 
 **Marketplace `.env`:**
-- `KOD_KANALI` — faqat lokal rivojlanish uchun (`konsol` yoki `telegram`). Ishlab chiqarishda e'tiborga olinmaydi: kod har doim Telegram orqali ketadi.
 - `PROKSI_ORQALI="true"` — nginx ortida. nginx'da: `proxy_set_header X-Real-IP $remote_addr;`
 - `SAYT_URL` — saytning tashqi manzili.
 
@@ -211,10 +210,6 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_BASE_URL` | ERP ning tashqi manzili: `https://www.biomaxx.store` | ha |
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
-| `KIRISH_KODI` | `ochirilgan` (standart, kodsiz) yoki `yoqilgan` (Telegram kodi) | yo'q |
-| `TELEGRAM_GATEWAY_TOKEN` | gateway.telegram.org tokeni — kod raqamning o'ziga, botsiz ketadi | tavsiya |
-| `TELEGRAM_BOT_TOKEN` | @BotFather bergan token — Gateway bo'lmasa kod shu bot orqali ketadi | ha |
-| `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
 | `DIRECT_DATABASE_URL` | migratsiya uchun, `-pooler.` **siz** | yo'q² |
@@ -248,55 +243,20 @@ Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
 Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
-### 4. Kirish kodi (Telegram)
+### 4. Ro'yxatdan o'tish va kirish
 
-**Hozir o'chirilgan** (`KIRISH_KODI=ochirilgan`, standart): mijoz ismi va raqamini yozadi va darhol ro'yxatdan o'tadi. Kod marshrutlari (`/api/kirish/kod`, `/tasdiq`) `kod_ochirilgan` qaytaradi. Kod yoqilganda esa aksincha — kodsiz `/api/kirish` yopiladi (`kod_kerak`), kodni chetlab o'tib bo'lmaydi.
+Mijoz **ismi va telefon raqamini** yozadi va bir bosishda ro'yxatdan o'tadi;
+keyingi safar raqami bilan kiradi (`/api/kirish`, `lib/kirish-server.ts`).
+Kod ham, parol ham, Telegram bot ham yo'q.
 
-Yoqish: Vercel'da `KIRISH_KODI=yoqilgan` → Redeploy. Quyidagi hammasi o'shanda ishlaydi.
+Tarix: 2026-09 da kirish kodi bir necha usulda sinab ko'rildi (ERP orqali,
+Telegram bot, Gateway). Mijozlar botdagi START va raqam tasdiqlash
+qadamlarini tushunmagani uchun 2026-09-25 da butunlay olib tashlandi.
+Kerak bo'lsa git tarixida: `862d9be`, `a63f4f0`.
 
-Mijoz raqamini yozadi va bir martalik 6 xonali kod oladi. Kod bazada faqat
-SHA-256 xeshi bo'lib turadi, 5 daqiqa amal qiladi, 5 ta noto'g'ri urinishdan
-keyin kuyadi; bitta raqamga daqiqada bitta kod, bitta IP dan 10 daqiqada
-5 ta so'rov va 15 ta tekshiruv.
-
-**Kod qanday yetkaziladi** (`src/lib/domen/kirish-kodi.ts`), shu tartibda:
-
-| # | Yo'l | Mijoz nima qiladi | Narx |
-|---|---|---|---|
-| 1 | **Telegram Gateway** — raqamning o'ziga, Telegram'ning rasmiy «Verification Codes» xabari | hech narsa | $0.01 / kod, yetkazilmasa qaytariladi |
-| 2 | **Bot** — raqam oldin tasdiqlangan bo'lsa: kod darhol yuboriladi, bot yangi oynada ochiladi | hech narsa | bepul |
-| 3 | **Bot, birinchi marta** — «Telegram orqali kod olish» bosilishi bilan bot yangi oynada ochiladi (`t.me/<bot>?start=kirish`) | START → «📱 Raqamni tasdiqlash» (bir marta); kod o'sha zahoti keladi | bepul |
-
-START'ni bot o'zi bosa olmaydi — bu Telegram qoidasi (bot birinchi bo'lib yoza olmaydi). «Raqamni tasdiqlash» esa xavfsizlik uchun shart: busiz begona odam saytga boshqaning raqamini yozib, kodni o'z Telegram'iga olib, o'sha hisobga kira olardi.
-
-Gateway sozlanmagan yoki yetkaza olmagan bo'lsa (raqamda Telegram yo'q,
-balans tugagan) tizim o'zi 2- va 3-yo'lga o'tadi; sabab jurnalda
-`[telegram-gateway] yuborilmadi: ...` bo'lib yoziladi.
-
-**Gateway'ni ulash (tavsiya):**
-
-1. https://gateway.telegram.org → Telegram hisobi bilan kiring
-2. Balansni to'ldiring, Account → API token ni oling
-3. Vercel'ga `TELEGRAM_GATEWAY_TOKEN` qilib qo'ying → Redeploy
-
-**Botni sozlash (zaxira, bir marta):**
-
-1. @BotFather da bot yarating → `TELEGRAM_BOT_TOKEN` ni Vercel'ga qo'ying.
-   Bot nomi mijozga ko'rinadi — do'kon nomiga mos bo'lsin.
-2. Deploydan keyin webhook'ni ro'yxatdan o'tkazing:
-
-```bash
-node scripts/webhook-ornat.mjs https://www.biomaxmarketplace.store
-node scripts/webhook-ornat.mjs --holat     # holatni ko'rish
-```
-
-Webhook maxfiy kalit bilan himoyalangan (kalit bot tokenidan hosil qilinadi).
-Kalitsiz hech kim soxta «kontakt» xabari yuborib, o'z chat ID'sini begona
-raqamga bog'lay olmaydi. Bot faqat **o'z** raqamini qabul qiladi —
-kitobchadan boshqa odamning kontakti yuborilsa rad etiladi.
-
-`KOD_KANALI` ishlab chiqarishda e'tiborga olinmaydi: kod har doim Telegram
-orqali ketadi (2026-09-18 da `konsol` qolib ketib, hech kim kira olmagan edi).
+Himoya: IP bo'yicha tezlik chegarasi (10 daqiqada 10 urinish), "o'z saytimi"
+tekshiruvi va bloklangan hisobni rad etish. **Eslatma:** kodsiz tizimda
+raqamni bilgan odam o'sha hisobga kira oladi — bu ongli tanlov.
 
 ### 5. Sayt ↔ ERP aloqasi (majburiy)
 
@@ -346,13 +306,12 @@ Kerak bo'lsa tekshiruvni qo'lda o'chirish: `SOZLAMANI_TEKSHIRMA=1`.
 | Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa — jurnalda aynan qaysi biri yozilgan. Build bunga to'xtamaydi — o'zgaruvchini tuzatib, qayta deploy qiling |
 | Build: "Failed to collect page data for /_not-found" | Eski kod (2026-09-25 gacha) muhit qiymatidagi kichik farqda (`"true"`, `True`, oxirida bo'sh joy) build'ni yiqitardi. Endi qiymatlar tozalab o'qiladi va build sozlama sabab hech qachon to'xtamaydi — bu xato chiqsa, Vercel eski commit'ni yig'yapti |
 | Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
-| Kod kelmaydi | Gateway: jurnalda `[telegram-gateway] yuborilmadi` (token, balans yoki raqamda Telegram yo'q). Bot: webhook ro'yxatdan o'tmagan (`node scripts/webhook-ornat.mjs --holat`) yoki `TELEGRAM_BOT_TOKEN` yo'q |
 | "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |
 | **Push qilinsa ham sayt eski qolyapti** | Vercel loyihasi GitHub repoga ulanmagan. Tekshirish: repo → Deployments bo'limida `vercel[bot]` yozuvlari bo'lishi kerak; yo'q bo'lsa Vercel → Settings → Git → Connect Git Repository (`main` shoxi). Repo ro'yxatda ko'rinmasa, GitHub'da Vercel ilovasiga shu repoga ruxsat bering |
 
 **Eslatma:** IP bo'yicha tezlik chegarasi server xotirasida (`src/lib/api.ts`).
-Vercel bir nechta nusxada ishlaganda har nusxa o'z hisobini yuritadi. Asosiy
-himoya baribir telefon raqami bo'yicha, bazada (`src/lib/domen/kirish-kodi.ts`).
+Vercel bir nechta nusxada ishlaganda har nusxa o'z hisobini yuritadi — ya'ni
+chegara taxminiy. Qat'iy chegara kerak bo'lsa uni bazaga yoki Redis'ga ko'chirish kerak.
 
 ## Boshlashdan oldin
 

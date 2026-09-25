@@ -75,7 +75,7 @@ export function mijozIp(req: NextRequest): string {
 // ─── Oddiy IP chegarasi ───────────────────────────────────────────────
 // Xotirada: bitta server nusxasi uchun yetarli. Bir nechta nusxa bo'lsa
 // Redis kabi umumiy omborga ko'chirilishi kerak. Asosiy himoya baribir
-// telefon bo'yicha, bazada (`kirish-kodi.ts`).
+// hisob bo'yicha, bazada.
 const oyna = new Map<string, number[]>()
 
 export function ipChegarasi(req: NextRequest, kalit: string, maks: number, ms: number): number | null {

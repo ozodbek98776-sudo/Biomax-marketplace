@@ -39,7 +39,8 @@ model MpHisob {
   /// E.164 ko'rinishida: +998901234567. Yagona identifikator.
   telefon        String   @unique
   ism            String?
-  /// Telegram chat ID — kirish kodi shu orqali yuboriladi.
+  /// Telegram chat ID. 2026-09-25 dan ishlatilmaydi (Telegram kodi olib
+  /// tashlandi); ustun ma'lumot yo'qolmasligi uchun qoldirilgan.
   telegramChatId String?
   /// ERP `Mijoz.id`. Bo'sh bo'lishi mumkin — mijoz hali xarid qilmagan.
   erpMijozId     String?  @unique

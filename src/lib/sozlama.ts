@@ -31,34 +31,6 @@ const sxema = z.object({
   /** Saytning tashqi manzili — havolalar va SEO uchun. */
   SAYT_URL: z.string().url().default('http://localhost:3002'),
 
-  /** Telegram bot token — kirish kodini yuborish uchun. */
-  TELEGRAM_BOT_TOKEN: z.string().optional(),
-
-  /**
-   * Kirishda Telegram kodi so'raladimi.
-   *   · `ochirilgan` (standart) — ism va telefon raqami bilan darhol
-   *     ro'yxatdan o'tadi yoki kiradi, hech qanday kod yo'q.
-   *   · `yoqilgan` — raqam Telegram kodi bilan tasdiqlanadi (Gateway yoki bot).
-   *
-   * Tarix: 2026-09 da bir necha marta almashtirilgan (kodsiz ↔ kod bilan),
-   * shuning uchun kod yo'li o'chirilmaydi — bitta qiymat bilan qaytariladi.
-   * 2026-09-25: do'kon egasi kodsiz, oddiy ro'yxatdan o'tishni tanladi.
-   */
-  KIRISH_KODI: z.enum(['yoqilgan', 'ochirilgan']).default('ochirilgan'),
-
-  /**
-   * Telegram Gateway tokeni (gateway.telegram.org) — kodni botsiz, raqamning
-   * O'ZIGA yuborish uchun. Bo'lsa asosiy yo'l shu; bo'lmasa bot ishlatiladi.
-   */
-  TELEGRAM_GATEWAY_TOKEN: z.string().optional(),
-
-  /**
-   * Kirish kodi qayerga yuboriladi: 'telegram' yoki 'konsol'.
-   * Lokal rivojlanishda 'konsol' — kod terminal'da ko'rinadi.
-   * Ishlab chiqarishda bu qiymat E'TIBORGA OLINMAYDI (pastdagi `kodKanali`).
-   */
-  KOD_KANALI: z.enum(['telegram', 'konsol']).default('konsol'),
-
   /**
    * Sayt nginx kabi teskari proksi ortidami. `true` bolsa mijoz IP\'si
    * `X-Real-IP` dan olinadi (proksi uni ozi yozadi, mijoz soxtalay olmaydi).
@@ -99,7 +71,7 @@ function saytManzili(muhit: NodeJS.ProcessEnv): string | undefined {
  * butun build "Failed to collect page data for /_not-found" bilan yiqildi.
  * Maxfiy kalitlarning ICHKI harflariga tegilmaydi — faqat chetlari.
  */
-const KICHIK_HARFLI = new Set(['NODE_ENV', 'KOD_KANALI', 'PROKSI_ORQALI', 'KIRISH_KODI'])
+const KICHIK_HARFLI = new Set(['NODE_ENV', 'PROKSI_ORQALI'])
 const MANTIQIY: Record<string, string> = { '1': 'true', yes: 'true', ha: 'true', '0': 'false', no: 'false', yoq: 'false' }
 
 function tozala(kalit: string, qiymat: unknown): unknown {
@@ -127,8 +99,6 @@ const ORINBOSAR: Record<string, string> = {
   ERP_HMAC_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SESSION_SECRET: 'build-uchun-vaqtinchalik-qiymat-32+',
   SAYT_URL: 'http://localhost:3002',
-  TELEGRAM_BOT_TOKEN: '1234567890:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
-  KOD_KANALI: 'konsol',
 }
 
 function oqi(): Sozlama {
@@ -178,25 +148,6 @@ export const sozlama = oqi()
 if (!buildBosqichi && sozlama.NODE_ENV === 'production' && !sozlama.PROKSI_ORQALI) {
   console.warn('[sozlama] PROKSI_ORQALI=false — IP chegarasi hamma mijozga BITTA umumiy hisoblagich boladi')
 }
-
-/**
- * Kod qaysi kanal orqali ketadi.
- *
- * Ishlab chiqarishda HAR DOIM Telegram. `konsol` u yerda kodni hech qayerga
- * yubormaydi, lekin mijozga "kod yuborildi" deb ko'rsatiladi — ya'ni hech kim
- * kira olmaydi va sabab ko'rinmaydi. 2026-09-18 da aynan shu holat yuz bergan
- * (Vercel'da `KOD_KANALI=konsol` qolib ketgan edi), shuning uchun bu qiymat
- * ishlab chiqarishda e'tiborga olinmaydi va jurnalga ogohlantirish yoziladi.
- */
-export const kodKanali: 'telegram' | 'konsol' =
-  sozlama.NODE_ENV === 'production' ? 'telegram' : sozlama.KOD_KANALI
-
-if (!buildBosqichi && sozlama.NODE_ENV === 'production' && sozlama.KOD_KANALI === 'konsol') {
-  console.warn('[sozlama] KOD_KANALI=konsol ishlab chiqarishda e\'tiborga olinmadi — kod Telegram orqali yuboriladi. Bu o\'zgaruvchini o\'chirib qo\'ying.')
-}
-
-/** Kirishda Telegram kodi so'raladimi (yuqoridagi `KIRISH_KODI` ga qarang). */
-export const kirishKodiYoqilgan = sozlama.KIRISH_KODI === 'yoqilgan'
 
 export const ishlabChiqarish = sozlama.NODE_ENV === 'production'
 export const rivojlanish = sozlama.NODE_ENV === 'development'

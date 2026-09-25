@@ -6,7 +6,7 @@ import { muvaffaq, xato } from '@/lib/natija'
 
 // Kodsiz kirish — telefon raqami bilan hisobni topish yoki ochish va seans.
 //
-// `/api/kirish` da ishlatiladi — kirish kodi o'chirilganda (KIRISH_KODI=ochirilgan).
+// `/api/kirish` da ishlatiladi — saytga kirishning yagona yo'li.
 //
 // Tekshiruvlar (rejim, ism, bloklangan hisob) chaqiruvchida bajarilgan
 // bo'lishi kerak; bu yerda faqat yozish va seans.

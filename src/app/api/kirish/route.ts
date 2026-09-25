@@ -4,21 +4,14 @@ import { kodsizKir } from '@/lib/kirish-server'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { XATOLAR } from '@/lib/natija'
 import { ipChegarasi, javob, jsonOqi, ozSaytdanmi, xatoJavob } from '@/lib/api'
-import { kirishKodiYoqilgan } from '@/lib/sozlama'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * Kodsiz kirish — telefon raqami (va ro'yxatda ism) bilan darhol.
- *
- * Faqat KIRISH_KODI=ochirilgan bo'lganda ishlaydi. Kod yoqilgan bo'lsa
- * bu marshrut YOPIQ — aks holda uni to'g'ridan-to'g'ri chaqirib kodni
- * chetlab o'tish mumkin bo'lardi (2026-09-24 da aynan shunday teshik bor edi).
+ * Ro'yxatdan o'tish / kirish — ism va telefon raqami bilan, bir bosishda.
+ * Kod ham, parol ham yo'q (2026-09-25: Telegram kodi butunlay olib tashlandi).
  */
 export async function POST(req: NextRequest) {
-  if (kirishKodiYoqilgan) {
-    return xatoJavob({ kod: 'kod_kerak', xabar: 'Telegram kodi bilan kiring' })
-  }
   if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yoq' }, 403)
 
   const kutish = ipChegarasi(req, 'kirish', 10, 10 * 60_000)

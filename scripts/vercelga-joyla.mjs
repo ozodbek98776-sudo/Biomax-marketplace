@@ -63,7 +63,7 @@ try {
 
 // ── 2. Muhit o'zgaruvchilari ─────────────────────────────────────────
 // Vercel'dagilar tekshiriladi: yetishmasa sayt birinchi so'rovdayoq 500 beradi.
-const KERAK = ['DATABASE_URL', 'SESSION_SECRET', 'TELEGRAM_BOT_TOKEN', 'ERP_HMAC_SECRET', 'PROKSI_ORQALI']
+const KERAK = ['DATABASE_URL', 'SESSION_SECRET', 'ERP_HMAC_SECRET', 'PROKSI_ORQALI']
 let ulangan = existsSync(path.join(ILDIZ, '.vercel', 'project.json'))
 if (!ulangan) {
   ogoh('loyiha Vercel bilan bog‘lanmagan — hozir bog‘laymiz (mavjud loyihani tanlang)')
