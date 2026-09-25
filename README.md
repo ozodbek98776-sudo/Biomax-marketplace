@@ -259,8 +259,10 @@ keyin kuyadi; bitta raqamga daqiqada bitta kod, bitta IP dan 10 daqiqada
 | # | Yo'l | Mijoz nima qiladi | Narx |
 |---|---|---|---|
 | 1 | **Telegram Gateway** — raqamning o'ziga, Telegram'ning rasmiy «Verification Codes» xabari | hech narsa | $0.01 / kod, yetkazilmasa qaytariladi |
-| 2 | **Bot** — mijoz botga raqamini oldin ulagan bo'lsa | hech narsa | bepul |
-| 3 | **Bir bosishli havola** — hali ulanmagan bo'lsa sayt «Telegram'da ochish» tugmasini ko'rsatadi (`t.me/<bot>?start=kirish`) | START → «Raqamni yuborish»; kod o'sha zahoti keladi | bepul |
+| 2 | **Bot** — raqam oldin tasdiqlangan bo'lsa: kod darhol yuboriladi, bot yangi oynada ochiladi | hech narsa | bepul |
+| 3 | **Bot, birinchi marta** — «Telegram orqali kod olish» bosilishi bilan bot yangi oynada ochiladi (`t.me/<bot>?start=kirish`) | START → «📱 Raqamni tasdiqlash» (bir marta); kod o'sha zahoti keladi | bepul |
+
+START'ni bot o'zi bosa olmaydi — bu Telegram qoidasi (bot birinchi bo'lib yoza olmaydi). «Raqamni tasdiqlash» esa xavfsizlik uchun shart: busiz begona odam saytga boshqaning raqamini yozib, kodni o'z Telegram'iga olib, o'sha hisobga kira olardi.
 
 Gateway sozlanmagan yoki yetkaza olmagan bo'lsa (raqamda Telegram yo'q,
 balans tugagan) tizim o'zi 2- va 3-yo'lga o'tadi; sabab jurnalda

@@ -31,22 +31,40 @@ const bot = token ? new Bot(token) : null
 const KALIT = token ? webhookKaliti(token) : ''
 
 if (bot) {
-  // /start buyrug'i. Saytdagi «Telegram'da ochish» tugmasi `?start=kirish`
-  // bilan ochadi — u holda matn aynan kirishga qaratiladi.
+  // /start. Sayt «Kod olish» bosilganda botni `?start=kirish` bilan yangi
+  // oynada ochadi. Telegram START tugmasini o'zi ko'rsatadi — uni faqat
+  // odamning o'zi bosa oladi (bot o'zini "start" qila olmaydi).
   bot.command('start', async (ctx) => {
-    const saytdan = ctx.match === 'kirish'
+    const chatId = ctx.chat.id.toString()
+
+    // Raqam avval tasdiqlangan — kod DARHOL, boshqa hech narsa so'ralmaydi
+    const ulangan = await db.mpHisob.findFirst({
+      where: { telegramChatId: chatId },
+      select: { telefon: true },
+    })
+    if (ulangan) {
+      const n = await kirishKodiYubor(ulangan.telefon, { faqatBot: true })
+      if (!n.ok && n.xato.kod === 'juda_tez') {
+        await ctx.reply('🔐 Kodingiz yuqorida — o‘shani saytga kiriting.')
+      } else if (!n.ok) {
+        console.error('[telegram-webhook] /start: kod yuborilmadi:', n.xato.kod)
+        await ctx.reply('❌ Kodni yuborib bo‘lmadi. Bir daqiqadan so‘ng saytda «Kodni qayta yuborish» ni bosing.')
+      }
+      return
+    }
+
+    // Birinchi marta: raqam egasi ekanini bitta bosish bilan tasdiqlash.
+    // Bu SHART — aks holda begona odam saytga boshqaning raqamini yozib,
+    // kodni o'z Telegram'iga olib, o'sha hisobga kira olardi.
     await ctx.reply(
-      saytdan
-        ? '👋 Assalomu alaykum!\n\n' +
-          'Saytga kirish uchun pastdagi «📱 Telefon raqamni yuborish» tugmasini bosing — ' +
-          'kirish kodi shu zahoti shu yerga keladi.'
-        : '👋 Assalomu alaykum! BioMax Marketplace botiga xush kelibsiz.\n\n' +
-          '📱 Telefon raqamingizni yuboring (pastdagi tugmani bosing).\n' +
-          'Shunda saytda kirish kodlari shu yerga keladi.',
+      ctx.match === 'kirish'
+        ? '👋 Assalomu alaykum!\n\nKodingizni olish uchun pastdagi «📱 Raqamni tasdiqlash» tugmasini bosing.'
+        : '👋 Assalomu alaykum! BioMax botiga xush kelibsiz.\n\n' +
+          'Pastdagi «📱 Raqamni tasdiqlash» tugmasini bosing — saytdagi kirish kodlari shu yerga keladi.',
       {
         reply_markup: {
           keyboard: [
-            [{ text: '📱 Telefon raqamni yuborish', request_contact: true }],
+            [{ text: '📱 Raqamni tasdiqlash', request_contact: true }],
           ],
           resize_keyboard: true,
           one_time_keyboard: true,
@@ -65,7 +83,7 @@ if (bot) {
     // kirish kodi o'sha odamga ketardi.
     if (!contact.user_id || contact.user_id !== ctx.from?.id) {
       await ctx.reply(
-        '⚠️ Faqat O‘Z raqamingizni yuboring — pastdagi «📱 Telefon raqamni yuborish» tugmasi orqali.',
+        '⚠️ Faqat O‘Z raqamingizni yuboring — pastdagi «📱 Raqamni tasdiqlash» tugmasi orqali.',
       )
       return
     }
@@ -91,9 +109,7 @@ if (bot) {
       })
 
       await ctx.reply(
-        '✅ Raqamingiz ulandi.\n\n' +
-        `📱 ${telefon}\n\n` +
-        'Kirish kodi hozir shu yerga keladi — uni saytda kiriting.',
+        `✅ Raqamingiz tasdiqlandi: ${telefon}`,
         {
           reply_markup: { remove_keyboard: true },
         },

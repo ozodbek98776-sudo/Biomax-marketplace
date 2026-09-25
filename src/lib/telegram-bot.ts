@@ -31,7 +31,10 @@ export async function botNomi(): Promise<string | null> {
   if (botNomiKesh) return botNomiKesh
   if (!sozlama.TELEGRAM_BOT_TOKEN) return null
   try {
-    const men = await getBot().api.getMe()
+    const men = await Promise.race([
+      getBot().api.getMe(),
+      new Promise<never>((_, rad) => setTimeout(() => rad(new Error('vaqt tugadi')), 2500)),
+    ])
     botNomiKesh = men.username ?? null
     return botNomiKesh
   } catch (e) {
@@ -64,10 +67,10 @@ export async function telegramKodYubor(
 
   try {
     const bot = getBot()
-    const xabar = `🔐 Kirish kodi: <code>${kod}</code>\n\n` +
-      `Bu kodni BioMax Marketplace saytida kiriting.\n` +
-      `Kod 5 daqiqa amal qiladi.\n\n` +
-      `⚠️ Kodni hech kimga aytmang!`
+    const xabar = `🔐 Bu sizning kodingiz: <code>${kod}</code>\n\n` +
+      `Uni saytga kiriting va ro‘yxatdan o‘ting (hisobingiz bo‘lsa — shu kod bilan kirasiz).\n\n` +
+      `⏱ Kod 5 daqiqa amal qiladi.\n` +
+      `⚠️ Kodni hech kimga bermang — do‘kon xodimlari ham uni so‘ramaydi.`
 
     await bot.api.sendMessage(chatId, xabar, { parse_mode: 'HTML' })
     return { ok: true, kanal: 'telegram' }

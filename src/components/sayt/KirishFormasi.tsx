@@ -16,6 +16,15 @@ interface Props {
   boshRejim: Rejim
   keyin: string
   tovar: { slug: string; nomi: string; narxSom: number | null } | null
+  /**
+   * Kod qaysi yo'l bilan ketadi (serverda aniqlanadi):
+   *   · `bot`     — Telegram botimiz; «Kod olish» bosilganda bot yangi oynada ochiladi
+   *   · `gateway` — raqamning o'ziga (Telegram Gateway), hech narsa ochilmaydi
+   *   · `konsol`  — rivojlanish, kod terminalda
+   */
+  kodYoli: 'bot' | 'gateway' | 'konsol'
+  /** Bot @username'i (faqat `bot` yo'lida) */
+  bot: string | null
 }
 
 interface XatoJavob { kod?: string; xato?: string; tafsilot?: { soniya?: number; sabab?: string; bot?: string } }
@@ -45,7 +54,7 @@ async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } 
  * Parol yoq: dokon mijozi uchun parol eslab qolish — ortiqcha tosiq,
  * telefon raqami esa kuryer uchun baribir kerak.
  */
-export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
+export default function KirishFormasi({ boshRejim, keyin, tovar, kodYoli, bot }: Props) {
   const router = useRouter()
   const [rejim, setRejim] = useState<Rejim>(boshRejim)
   const [bosqich, setBosqich] = useState<Bosqich>('telefon')
@@ -57,6 +66,8 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
   const [band, setBand] = useState(false)
   const [qaytaYuborish, setQaytaYuborish] = useState(60)
   const [kanal, setKanal] = useState<Kanal>('telegram')
+  /** Telegram yangi oynada ochildimi (brauzer bloklasa — tugma ko'rsatiladi) */
+  const [oynaOchildi, setOynaOchildi] = useState(false)
   /** Botga hali ulanmagan mijoz uchun: t.me/<bot>?start=kirish */
   const [botHavola, setBotHavola] = useState<string | null>(null)
   // JS ulanguncha yuborish o'chiq — aks holda brauzer formani o'zi yuborib sahifani qayta yuklaydi
@@ -90,6 +101,17 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
     if (!tel) return setXato({ matn: 'Telefon raqamini toliq kiriting: 90 123 45 67' })
     if (rejim === 'royxat' && !roziQiymati) return setXato({ matn: 'Davom etish uchun shartlarga rozilik bering' })
 
+    // Botni SHU bosishning o'zida ochamiz: `await` dan keyin ochilgan oynani
+    // brauzerlar "reklama oynasi" deb bloklaydi. Telegram o'zi START
+    // tugmasini ko'rsatadi; bot kodni shu zahoti yuboradi.
+    const havola = kodYoli === 'bot' && bot ? `https://t.me/${bot}?start=kirish` : null
+    if (havola) {
+      const oyna = window.open(havola, '_blank')
+      if (oyna) oyna.opener = null
+      setBotHavola(havola)
+      setOynaOchildi(!!oyna)
+    }
+
     setBand(true)
     const k = await yubor<{ kanal: Kanal }>('/api/kirish/kod', { telefon: tel })
     setBand(false)
@@ -98,8 +120,8 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
       // Botga ulanmagan: ko'rsatma devori o'rniga bitta tugma. Mijoz botda
       // «START» va «Raqamni yuborish» ni bosadi — kod o'sha zahoti keladi,
       // shuning uchun kod maydonini darhol ko'rsatamiz.
-      if (k.x.kod === 'telegram_ulangmagan' && k.x.tafsilot?.bot) {
-        setBotHavola(`https://t.me/${k.x.tafsilot.bot}?start=kirish`)
+      if (k.x.kod === 'telegram_ulangmagan' && (havola || k.x.tafsilot?.bot)) {
+        setBotHavola(havola ?? `https://t.me/${k.x.tafsilot!.bot}?start=kirish`)
         setKanal('bot_ulash')
         setBosqich('kod')
         setQaytaYuborish(0)
@@ -109,7 +131,8 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
     }
 
     setKanal(k.d.kanal)
-    setBotHavola(null)
+    // Kod bot orqali ketgan bo'lsa havola qoladi — "Telegram'ni ochish" uchun
+    if (k.d.kanal !== 'telegram') setBotHavola(null)
     setBosqich('kod')
     setQaytaYuborish(60)
     const timer = setInterval(() => {
@@ -271,7 +294,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
             className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
           >
             {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
-            {band ? 'Kod yuborilmoqda…' : !tayyor ? 'Sahifa yuklanmoqda…' : 'Davom etish'}
+            {band ? 'Kod yuborilmoqda…' : !tayyor ? 'Sahifa yuklanmoqda…' : kodYoli === 'bot' ? 'Telegram orqali kod olish' : 'Kod olish'}
           </button>
 
           <p className="text-center text-sm text-xira">
@@ -289,11 +312,11 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
             </h1>
             <p className="text-[15px] text-xira">
               {kanal === 'bot_ulash' ? (
-                <>Kod <span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> uchun Telegram botimizga keladi.</>
+                <>Kod Telegram botimizda. <span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span></>
               ) : kanal === 'gateway' ? (
-                <><span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram&apos;dagi «Verification Codes» xabarini oching.</>
+                <><span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram&apos;dagi «Verification Codes» xabarini oching.</>
               ) : (
-                <><span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram botimiz xabarida.</>
+                <>✅ Kod Telegram botimizga yuborildi. <span className="whitespace-nowrap font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span></>
               )}
               {' '}
               <button
@@ -302,6 +325,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
                   setBosqich('telefon')
                   setXato(null)
                   setBotHavola(null)
+                  setOynaOchildi(false)
                 }}
                 className="font-semibold text-brend hover:text-brend-quyuq"
               >
@@ -312,21 +336,37 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
 
           {botHavola && (
             <div className="flex flex-col gap-3 rounded-[16px] border border-chiziq bg-yuza p-4">
+              {oynaOchildi && (
+                <p className="text-[14.5px] font-semibold text-siyoh">
+                  Telegram yangi oynada ochildi.
+                </p>
+              )}
               <a
                 href={botHavola}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-[52px] items-center justify-center gap-2 rounded-[13px] bg-[#229ED9] text-[16px] font-semibold text-white transition hover:bg-[#1c8fc4]"
+                className={cn(
+                  'flex items-center justify-center gap-2 rounded-[13px] font-semibold text-white transition',
+                  oynaOchildi
+                    ? 'h-11 bg-[#229ED9]/90 text-[15px] hover:bg-[#1c8fc4]'
+                    : 'h-[52px] bg-[#229ED9] text-[16px] hover:bg-[#1c8fc4]',
+                )}
               >
-                <Send size={19} aria-hidden />
-                Telegram&apos;da ochish
+                <Send size={oynaOchildi ? 17 : 19} aria-hidden />
+                {oynaOchildi ? 'Telegram\'ni qayta ochish' : 'Telegram\'da ochish'}
               </a>
-              <ol className="flex flex-col gap-1.5 text-[14px] text-siyoh-2">
-                <li><span className="font-semibold text-siyoh">1.</span> Telegram ochilgach, pastdagi <b>START</b> tugmasini bosing</li>
-                <li><span className="font-semibold text-siyoh">2.</span> «📱 Telefon raqamni yuborish» ni bosing</li>
-                <li><span className="font-semibold text-siyoh">3.</span> Kelgan 6 raqamli kodni shu yerga kiriting</li>
-              </ol>
-              <p className="text-[13px] text-xira">Bu faqat birinchi marta — keyingi safar kod o‘zi keladi.</p>
+              {kanal === 'bot_ulash' ? (
+                <ol className="flex flex-col gap-1.5 text-[14px] text-siyoh-2">
+                  <li><span className="font-semibold text-siyoh">1.</span> Telegram&apos;da <b>START</b> tugmasini bosing</li>
+                  <li><span className="font-semibold text-siyoh">2.</span> «📱 Raqamni tasdiqlash» ni bosing — kod o‘sha zahoti keladi</li>
+                  <li><span className="font-semibold text-siyoh">3.</span> Kodni shu yerga kiriting</li>
+                </ol>
+              ) : (
+                <p className="text-[14px] text-siyoh-2">Bot yuborgan 6 raqamli kodni pastga kiriting.</p>
+              )}
+              {kanal === 'bot_ulash' && (
+                <p className="text-[13px] text-xira">Raqamni tasdiqlash faqat birinchi marta — keyingi safar kod darhol keladi.</p>
+              )}
             </div>
           )}
 
