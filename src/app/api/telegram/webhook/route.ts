@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'node:crypto'
 import { Bot, webhookCallback } from 'grammy'
-import { sozlama } from '@/lib/sozlama'
+import { kirishKodiYoqilgan, sozlama } from '@/lib/sozlama'
 import { db } from '@/lib/db'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { kirishKodiYubor } from '@/lib/domen/kirish-kodi'
@@ -36,6 +36,15 @@ if (bot) {
   // odamning o'zi bosa oladi (bot o'zini "start" qila olmaydi).
   bot.command('start', async (ctx) => {
     const chatId = ctx.chat.id.toString()
+
+    // Kirish kodi o'chirilgan — botdan hech narsa talab qilinmaydi
+    if (!kirishKodiYoqilgan) {
+      await ctx.reply(
+        '👋 Assalomu alaykum! BioMax botiga xush kelibsiz.\n\n' +
+        `Saytga kirish uchun kod kerak emas — ismingiz va telefon raqamingiz bilan ro‘yxatdan o‘ting: ${sozlama.SAYT_URL}`,
+      )
+      return
+    }
 
     // Raqam avval tasdiqlangan — kod DARHOL, boshqa hech narsa so'ralmaydi
     const ulangan = await db.mpHisob.findFirst({
@@ -118,6 +127,7 @@ if (bot) {
       // Mijoz odatda saytdan kelgan: kodni qayta so'ratmasdan shu zahoti
       // yuboramiz. Bot orqali — bepul va aynan shu chatga. Yaqinda kod
       // yuborilgan bo'lsa (1 daqiqa) yangisi yuborilmaydi — eskisi amal qiladi.
+      if (!kirishKodiYoqilgan) return
       const kod = await kirishKodiYubor(telefon, { faqatBot: true })
       if (!kod.ok && kod.xato.kod !== 'juda_tez') {
         console.error('[telegram-webhook] kod yuborilmadi:', kod.xato.kod)

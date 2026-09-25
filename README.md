@@ -8,8 +8,8 @@ ishlaydi.
 
 **Ishlaydi:**
 - Landing, katalog (qidiruv, kategoriya), mahsulot sahifasi — ERP'dan jonli narx va mavjudlik
-- Ro'yxatdan o'tish / kirish — telefon raqami va **Telegram botga kelgan kod** bilan,
-  parolsiz. Mijoz avval botga raqamini ulashadi (pastga qarang, «Kirish kodi»)
+- Ro'yxatdan o'tish / kirish — **ism va telefon raqami** bilan, parolsiz va kodsiz.
+  Telegram kodi tayyor turibdi — bitta sozlama bilan yoqiladi (`KIRISH_KODI`, pastga qarang)
 - Savat, rasmiylashtirish (kuryer yoki olib ketish, vaqt oralig'i, naqd/karta — qabul qilganda)
 - Buyurtma sahifasi: holat chizig'i, mijoz o'zi bekor qilishi (kuryerga topshirilguncha)
 - ERP'da **Onlayn buyurtmalar** paneli: tasdiqlash → yig'ish → yo'lda → topshirildi; har bosqichda mijozga Telegram xabari
@@ -211,6 +211,7 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_BASE_URL` | ERP ning tashqi manzili: `https://www.biomaxx.store` | ha |
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
+| `KIRISH_KODI` | `ochirilgan` (standart, kodsiz) yoki `yoqilgan` (Telegram kodi) | yo'q |
 | `TELEGRAM_GATEWAY_TOKEN` | gateway.telegram.org tokeni — kod raqamning o'ziga, botsiz ketadi | tavsiya |
 | `TELEGRAM_BOT_TOKEN` | @BotFather bergan token — Gateway bo'lmasa kod shu bot orqali ketadi | ha |
 | `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
@@ -248,6 +249,10 @@ Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
 ### 4. Kirish kodi (Telegram)
+
+**Hozir o'chirilgan** (`KIRISH_KODI=ochirilgan`, standart): mijoz ismi va raqamini yozadi va darhol ro'yxatdan o'tadi. Kod marshrutlari (`/api/kirish/kod`, `/tasdiq`) `kod_ochirilgan` qaytaradi. Kod yoqilganda esa aksincha — kodsiz `/api/kirish` yopiladi (`kod_kerak`), kodni chetlab o'tib bo'lmaydi.
+
+Yoqish: Vercel'da `KIRISH_KODI=yoqilgan` → Redeploy. Quyidagi hammasi o'shanda ishlaydi.
 
 Mijoz raqamini yozadi va bir martalik 6 xonali kod oladi. Kod bazada faqat
 SHA-256 xeshi bo'lib turadi, 5 daqiqa amal qiladi, 5 ta noto'g'ri urinishdan

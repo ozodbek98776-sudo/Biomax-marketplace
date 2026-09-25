@@ -7,7 +7,7 @@ import KirishFormasi from '@/components/sayt/KirishFormasi'
 import { joriyHisob } from '@/lib/hisob'
 import { xavfsizQaytish } from '@/lib/seans'
 import { vitrinaTovari } from '@/lib/domen/vitrina'
-import { kodKanali } from '@/lib/sozlama'
+import { kirishKodiYoqilgan, kodKanali } from '@/lib/sozlama'
 import { botNomi } from '@/lib/telegram-bot'
 import { gatewayBormi } from '@/lib/telegram-gateway'
 
@@ -29,7 +29,7 @@ export default async function KirishSahifasi({ searchParams }: { searchParams: P
   // Kod qaysi yo'l bilan ketadi — forma shunga qarab Telegram'ni oldindan
   // ochadi (bot) yoki shunchaki "kod yuborildi" deydi (Gateway, konsol)
   const kodYoli = kodKanali === 'konsol' ? 'konsol' : gatewayBormi() ? 'gateway' : 'bot'
-  const bot = kodYoli === 'bot' ? await botNomi() : null
+  const bot = kirishKodiYoqilgan && kodYoli === 'bot' ? await botNomi() : null
 
   // Mehmon tanlagan mahsulot — "Saqlanadi" deb ko'rsatiladi va kirgach savatga tushadi
   let tovar: { slug: string; nomi: string; narxSom: number | null } | null = null
@@ -85,6 +85,7 @@ export default async function KirishSahifasi({ searchParams }: { searchParams: P
             boshRejim={p.rejim === 'kirish' ? 'kirish' : 'royxat'}
             keyin={keyin}
             tovar={tovar}
+            kodBilan={kirishKodiYoqilgan}
             kodYoli={kodYoli}
             bot={bot}
           />

@@ -3,6 +3,7 @@ import { kirishKodiYubor } from '@/lib/domen/kirish-kodi'
 import { telefonniTozala } from '@/lib/domen/telefon'
 import { XATOLAR } from '@/lib/natija'
 import { ipChegarasi, javob, jsonOqi, ozSaytdanmi, xatoJavob } from '@/lib/api'
+import { kirishKodiYoqilgan } from '@/lib/sozlama'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(req: NextRequest) {
   if (!ozSaytdanmi(req)) return javob({ kod: 'taqiqlangan', xato: 'Ruxsat yoq' }, 403)
+  if (!kirishKodiYoqilgan) {
+    return xatoJavob({ kod: 'kod_ochirilgan', xabar: 'Kod kerak emas — ism va raqam bilan kiring' })
+  }
 
   // Bitta IP dan kod "quvurlash" — telefon bo'yicha chegara domenda (1 daqiqa)
   const kutish = ipChegarasi(req, 'kirish-kod', 5, 10 * 60_000)

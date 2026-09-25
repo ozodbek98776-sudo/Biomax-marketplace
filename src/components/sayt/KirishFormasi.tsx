@@ -17,6 +17,11 @@ interface Props {
   keyin: string
   tovar: { slug: string; nomi: string; narxSom: number | null } | null
   /**
+   * Kirishda Telegram kodi so'raladimi (`KIRISH_KODI`). `false` — ism va
+   * raqam bilan bir bosishda ro'yxatdan o'tadi yoki kiradi.
+   */
+  kodBilan: boolean
+  /**
    * Kod qaysi yo'l bilan ketadi (serverda aniqlanadi):
    *   · `bot`     — Telegram botimiz; «Kod olish» bosilganda bot yangi oynada ochiladi
    *   · `gateway` — raqamning o'ziga (Telegram Gateway), hech narsa ochilmaydi
@@ -54,7 +59,7 @@ async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } 
  * Parol yoq: dokon mijozi uchun parol eslab qolish — ortiqcha tosiq,
  * telefon raqami esa kuryer uchun baribir kerak.
  */
-export default function KirishFormasi({ boshRejim, keyin, tovar, kodYoli, bot }: Props) {
+export default function KirishFormasi({ boshRejim, keyin, tovar, kodBilan, kodYoli, bot }: Props) {
   const router = useRouter()
   const [rejim, setRejim] = useState<Rejim>(boshRejim)
   const [bosqich, setBosqich] = useState<Bosqich>('telefon')
@@ -100,6 +105,15 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, kodYoli, bot }:
     if (rejim === 'royxat' && ismQiymati.trim().length < 2) return setXato({ matn: 'Ismingizni kiriting' })
     if (!tel) return setXato({ matn: 'Telefon raqamini toliq kiriting: 90 123 45 67' })
     if (rejim === 'royxat' && !roziQiymati) return setXato({ matn: 'Davom etish uchun shartlarga rozilik bering' })
+
+    // Kodsiz: bitta so'rov — hisob ochiladi (yoki topiladi) va seans boshlanadi
+    if (!kodBilan) {
+      setBand(true)
+      const n = await yubor<Kirildi>('/api/kirish', { rejim, telefon: tel, ism: ismQiymati.trim() })
+      setBand(false)
+      if (!n.ok) return setXato({ matn: n.x.xato ?? 'Kirib bo‘lmadi', kod: n.x.kod })
+      return kirildi(n.d)
+    }
 
     // Botni SHU bosishning o'zida ochamiz: `await` dan keyin ochilgan oynani
     // brauzerlar "reklama oynasi" deb bloklaydi. Telegram o'zi START
@@ -213,7 +227,9 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, kodYoli, bot }:
             </h1>
             <p className="text-[15px] text-xira">
               {rejim === 'royxat'
-                ? 'Ismingiz va telefon raqamingiz — Telegram orqali kod yuboramiz.'
+                ? kodBilan
+                  ? 'Ismingiz va telefon raqamingiz — Telegram orqali kod yuboramiz.'
+                  : 'Ismingiz va telefon raqamingiz yetarli — parol ham, kod ham kerak emas.'
                 : 'Royxatdan otgan telefon raqamingizni kiriting.'}
             </p>
           </div>
@@ -294,7 +310,13 @@ export default function KirishFormasi({ boshRejim, keyin, tovar, kodYoli, bot }:
             className="flex h-[54px] items-center justify-center gap-2 rounded-[14px] bg-brend text-[16.5px] font-semibold text-white transition hover:bg-brend-quyuq disabled:opacity-70"
           >
             {(band || !tayyor) && <Loader2 size={19} className="animate-spin" aria-hidden />}
-            {band ? 'Kod yuborilmoqda…' : !tayyor ? 'Sahifa yuklanmoqda…' : kodYoli === 'bot' ? 'Telegram orqali kod olish' : 'Kod olish'}
+            {band
+              ? (kodBilan ? 'Kod yuborilmoqda…' : rejim === 'royxat' ? 'Hisob ochilmoqda…' : 'Kirilmoqda…')
+              : !tayyor
+                ? 'Sahifa yuklanmoqda…'
+                : !kodBilan
+                  ? (rejim === 'royxat' ? 'Ro‘yxatdan o‘tish' : 'Kirish')
+                  : kodYoli === 'bot' ? 'Telegram orqali kod olish' : 'Kod olish'}
           </button>
 
           <p className="text-center text-sm text-xira">
