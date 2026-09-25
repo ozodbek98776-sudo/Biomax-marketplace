@@ -48,6 +48,22 @@ async function erpTekshir() {
   }
 }
 
+/**
+ * Jonli saytda QAYSI kod turibdi.
+ *
+ * Vercel har deployga git commit'ini beradi. Busiz "kod yangilandimi yoki
+ * eski deploy turibdimi" degan savolga javob topib bo'lmasdi — 2026-09
+ * da bir hafta shu chalkashlik bo'lgan (repo yangilangan, sayt eski).
+ */
+function versiya() {
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA
+  return {
+    commit: sha ? sha.slice(0, 7) : 'lokal',
+    muhit: process.env.VERCEL_ENV ?? 'lokal',
+    qurilgan: process.env.VERCEL_DEPLOYMENT_ID ? undefined : new Date().toISOString(),
+  }
+}
+
 export async function GET() {
   const [baza, erp] = await Promise.all([
     olcha(() => db.$queryRaw`select 1`),
@@ -56,7 +72,7 @@ export async function GET() {
   const hammasi = baza.ok && erp.ok
 
   return NextResponse.json(
-    { holat: hammasi ? 'ishlayapti' : 'nosoz', baza, erp, vaqt: new Date().toISOString() },
+    { holat: hammasi ? 'ishlayapti' : 'nosoz', versiya: versiya(), baza, erp, vaqt: new Date().toISOString() },
     // 503 — yuk balanslovchi va monitoring nosoz nusxani darhol ajratsin.
     { status: hammasi ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
   )

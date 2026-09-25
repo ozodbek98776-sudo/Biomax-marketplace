@@ -68,6 +68,7 @@ bilan **aynan bir xil** bo'lishi shart — `npm run ishga` buni tekshiradi.
 | `npm run lint` | ESLint |
 | `npm run tekshir` | Tur tekshiruvi (`tsc`) |
 | `npm run build` | Ishlab chiqarish build'i |
+| `npm run joyla` | Vercel'ga joylash (pastga qarang) |
 
 GitHub Actions har push va PR'da uchalasini ishga tushiradi
 ([ci.yml](.github/workflows/ci.yml)).
@@ -172,6 +173,28 @@ tushiriladi — eski QR ishlamay qoladi.
 
 Loyiha Vercel uchun tayyor: `postinstall` da `prisma generate`, mintaqa
 `vercel.json` da `sin1` (ERP bilan bir joyda), Node 22.
+
+**Ikki yo'l bor:**
+
+1. **GitHub orqali (tavsiya etiladi)** — Vercel loyihasi repoga ulansa, har
+   push avtomatik deploy bo'ladi. Ulanganini tekshirish: GitHub repo →
+   Deployments bo'limida `vercel[bot]` yozuvlari bo'lishi kerak.
+2. **Qo'lda, shu papkadan:**
+
+   ```bash
+   npx vercel login     # bir marta
+   npm run joyla        # ishlab chiqarishga
+   npm run joyla -- --sinov
+   ```
+
+   Skript avval loyiha bog'langanini va muhit o'zgaruvchilari joyidaligini
+   tekshiradi, so'ng deploy qiladi va oxirida `/api/salomatlik` ni o'qib
+   natijani ko'rsatadi.
+
+**Jonli saytda qaysi kod turibdi:** `/api/salomatlik` javobidagi
+`versiya.commit` — git commit'ning qisqa nomi. Repo yangi, sayt eski
+bo'lsa shu yerdan darhol ko'rinadi (2026-09 da bir hafta shu chalkashlik
+bo'lgan: push ketgan, lekin loyiha repoga ulanmagani uchun deploy bo'lmagan).
 
 ### 1. Muhit o'zgaruvchilari — deploydan OLDIN
 
