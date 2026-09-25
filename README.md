@@ -320,7 +320,8 @@ Kerak bo'lsa tekshiruvni qo'lda o'chirish: `SOZLAMANI_TEKSHIRMA=1`.
 
 | Belgi | Sabab |
 |---|---|
-| Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa. Build bunga to'xtamaydi — o'zgaruvchini qo'shib, qayta deploy qiling |
+| Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa — jurnalda aynan qaysi biri yozilgan. Build bunga to'xtamaydi — o'zgaruvchini tuzatib, qayta deploy qiling |
+| Build: "Failed to collect page data for /_not-found" | Eski kod (2026-09-25 gacha) muhit qiymatidagi kichik farqda (`"true"`, `True`, oxirida bo'sh joy) build'ni yiqitardi. Endi qiymatlar tozalab o'qiladi va build sozlama sabab hech qachon to'xtamaydi — bu xato chiqsa, Vercel eski commit'ni yig'yapti |
 | Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
 | Kod kelmaydi | mijoz botga raqamini ulamagan (`telegram_ulangmagan`), `TELEGRAM_BOT_TOKEN` yo'q yoki webhook ro'yxatdan o'tmagan (`node scripts/webhook-ornat.mjs --holat`) |
 | "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |

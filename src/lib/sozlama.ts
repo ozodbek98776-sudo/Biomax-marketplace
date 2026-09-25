@@ -71,6 +71,30 @@ function saytManzili(muhit: NodeJS.ProcessEnv): string | undefined {
  * ba'zan faqat bitta muhit uchun belgilanadi). O'shanda build
  * "Failed to collect page data" bilan yiqilardi.
  */
+/**
+ * Qiymatni tozalash — qo'lda ko'chirishda eng ko'p uchraydigan xatolar:
+ *   · chetdagi bo'sh joy yoki yangi qator:   "true "   → "true"
+ *   · qo'shtirnoq bilan ko'chirilgan:         "\"true\""  → "true"
+ *   · katta harf (bayroq va ro'yxatlarda):   "True"    → "true"
+ *
+ * 2026-09-25: Vercel'da `PROKSI_ORQALI` shunday farq bilan kiritilganda
+ * butun build "Failed to collect page data for /_not-found" bilan yiqildi.
+ * Maxfiy kalitlarning ICHKI harflariga tegilmaydi — faqat chetlari.
+ */
+const KICHIK_HARFLI = new Set(['NODE_ENV', 'KOD_KANALI', 'PROKSI_ORQALI'])
+const MANTIQIY: Record<string, string> = { '1': 'true', yes: 'true', ha: 'true', '0': 'false', no: 'false', yoq: 'false' }
+
+function tozala(kalit: string, qiymat: unknown): unknown {
+  if (typeof qiymat !== 'string') return qiymat
+  let v = qiymat.trim()
+  const q = v[0]
+  if (v.length >= 2 && (q === '"' || q === "'") && v.endsWith(q)) v = v.slice(1, -1).trim()
+  if (KICHIK_HARFLI.has(kalit)) v = v.toLowerCase()
+  if (kalit === 'PROKSI_ORQALI') v = MANTIQIY[v] ?? v
+  // Bo'sh qiymat "kiritilmagan" deb hisoblanadi — standart qiymat ishlaydi
+  return v === '' ? undefined : v
+}
+
 const buildBosqichi =
   process.env.NEXT_PHASE === 'phase-production-build' ||
   process.env.SOZLAMANI_TEKSHIRMA === '1'
@@ -90,7 +114,12 @@ const ORINBOSAR: Record<string, string> = {
 }
 
 function oqi(): Sozlama {
-  const xom: Record<string, unknown> = { ...process.env, SAYT_URL: saytManzili(process.env) }
+  const muhit: Record<string, unknown> = {}
+  for (const kalit of Object.keys(sxema.shape)) muhit[kalit] = tozala(kalit, process.env[kalit])
+  const xom: Record<string, unknown> = {
+    ...muhit,
+    SAYT_URL: saytManzili({ ...process.env, SAYT_URL: muhit.SAYT_URL as string | undefined }),
+  }
   const natija = sxema.safeParse(xom)
   if (natija.success) return natija.data
 
@@ -105,17 +134,20 @@ function oqi(): Sozlama {
     const tuzatilgan = { ...xom }
     for (const muammo of natija.error.issues) {
       const kalit = String(muammo.path[0])
+      // O'rinbosari bor — o'sha; yo'q — kalit olib tashlanadi va sxemadagi
+      // standart qiymat ishlaydi (masalan PROKSI_ORQALI → false)
       if (kalit in ORINBOSAR) tuzatilgan[kalit] = ORINBOSAR[kalit]
+      else delete tuzatilgan[kalit]
     }
     const qayta = sxema.safeParse(tuzatilgan)
-    if (qayta.success) {
-      console.warn(
-        `[sozlama] build paytida quyidagilar yoq yoki notogri:\n${satrlar}\n` +
-        '[sozlama] build davom etadi, lekin sayt ISHLASHI uchun ular muhit ' +
-        'ozgaruvchilarida bolishi SHART (README → "Vercel\'ga deploy").',
-      )
-      return qayta.data
-    }
+    console.warn(
+      `[sozlama] build paytida quyidagilar yoq yoki notogri:\n${satrlar}\n` +
+      '[sozlama] build davom etadi, lekin sayt ISHLASHI uchun ular muhit ' +
+      'ozgaruvchilarida TO\'G\'RI bolishi SHART (README → "Vercel\'ga deploy").',
+    )
+    // Hech qanday sozlama build'ni to'xtatmaydi: eng yomon holatda faqat
+    // o'rinbosarlar bilan. Haqiqiy tekshiruv server ko'tarilganda bo'ladi.
+    return qayta.success ? qayta.data : sxema.parse({ ...ORINBOSAR, NODE_ENV: 'production' })
   }
 
   // Ataylab `throw` — ilova notogri sozlama bilan kotarilmasin.
