@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Check, Loader2, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { Narx } from '@/components/ui/Belgilar'
 import { mahalliyQism, telefonMatni, telefonniTozala } from '@/lib/domen/telefon'
@@ -18,7 +18,10 @@ interface Props {
   tovar: { slug: string; nomi: string; narxSom: number | null } | null
 }
 
-interface XatoJavob { kod?: string; xato?: string; tafsilot?: { soniya?: number; sabab?: string } }
+interface XatoJavob { kod?: string; xato?: string; tafsilot?: { soniya?: number; sabab?: string; bot?: string } }
+
+/** Kod qaysi yo'l bilan ketdi — mijozga qayerdan qidirishni aytish uchun. */
+type Kanal = 'gateway' | 'telegram' | 'konsol' | 'bot_ulash'
 interface Kirildi { yangi: boolean; hisob: { ism: string | null } }
 
 async function yubor<T>(yol: string, tana: unknown): Promise<{ ok: true; d: T } | { ok: false; x: XatoJavob }> {
@@ -53,6 +56,9 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
   const [xato, setXato] = useState<{ matn: string; kod?: string } | null>(null)
   const [band, setBand] = useState(false)
   const [qaytaYuborish, setQaytaYuborish] = useState(60)
+  const [kanal, setKanal] = useState<Kanal>('telegram')
+  /** Botga hali ulanmagan mijoz uchun: t.me/<bot>?start=kirish */
+  const [botHavola, setBotHavola] = useState<string | null>(null)
   // JS ulanguncha yuborish o'chiq — aks holda brauzer formani o'zi yuborib sahifani qayta yuklaydi
   const tayyor = useGidratatsiya()
   const ismMaydoni = useRef<HTMLInputElement>(null)
@@ -85,13 +91,25 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
     if (rejim === 'royxat' && !roziQiymati) return setXato({ matn: 'Davom etish uchun shartlarga rozilik bering' })
 
     setBand(true)
-    const k = await yubor<{ kanal: string }>('/api/kirish/kod', { telefon: tel })
+    const k = await yubor<{ kanal: Kanal }>('/api/kirish/kod', { telefon: tel })
     setBand(false)
 
     if (!k.ok) {
+      // Botga ulanmagan: ko'rsatma devori o'rniga bitta tugma. Mijoz botda
+      // «START» va «Raqamni yuborish» ni bosadi — kod o'sha zahoti keladi,
+      // shuning uchun kod maydonini darhol ko'rsatamiz.
+      if (k.x.kod === 'telegram_ulangmagan' && k.x.tafsilot?.bot) {
+        setBotHavola(`https://t.me/${k.x.tafsilot.bot}?start=kirish`)
+        setKanal('bot_ulash')
+        setBosqich('kod')
+        setQaytaYuborish(0)
+        return
+      }
       return setXato({ matn: k.x.xato ?? 'Kod yuborib bolmadi', kod: k.x.kod })
     }
 
+    setKanal(k.d.kanal)
+    setBotHavola(null)
     setBosqich('kod')
     setQaytaYuborish(60)
     const timer = setInterval(() => {
@@ -270,13 +288,20 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
               Kodni kiriting
             </h1>
             <p className="text-[15px] text-xira">
-              <span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik.
+              {kanal === 'bot_ulash' ? (
+                <>Kod <span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> uchun Telegram botimizga keladi.</>
+              ) : kanal === 'gateway' ? (
+                <><span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram&apos;dagi «Verification Codes» xabarini oching.</>
+              ) : (
+                <><span className="font-raqam font-semibold text-siyoh">{telefonMatni(raqam)}</span> raqamiga kod yubordik — Telegram botimiz xabarida.</>
+              )}
               {' '}
               <button
                 type="button"
                 onClick={() => {
                   setBosqich('telefon')
                   setXato(null)
+                  setBotHavola(null)
                 }}
                 className="font-semibold text-brend hover:text-brend-quyuq"
               >
@@ -284,6 +309,26 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
               </button>
             </p>
           </div>
+
+          {botHavola && (
+            <div className="flex flex-col gap-3 rounded-[16px] border border-chiziq bg-yuza p-4">
+              <a
+                href={botHavola}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-[52px] items-center justify-center gap-2 rounded-[13px] bg-[#229ED9] text-[16px] font-semibold text-white transition hover:bg-[#1c8fc4]"
+              >
+                <Send size={19} aria-hidden />
+                Telegram&apos;da ochish
+              </a>
+              <ol className="flex flex-col gap-1.5 text-[14px] text-siyoh-2">
+                <li><span className="font-semibold text-siyoh">1.</span> Telegram ochilgach, pastdagi <b>START</b> tugmasini bosing</li>
+                <li><span className="font-semibold text-siyoh">2.</span> «📱 Telefon raqamni yuborish» ni bosing</li>
+                <li><span className="font-semibold text-siyoh">3.</span> Kelgan 6 raqamli kodni shu yerga kiriting</li>
+              </ol>
+              <p className="text-[13px] text-xira">Bu faqat birinchi marta — keyingi safar kod o‘zi keladi.</p>
+            </div>
+          )}
 
           <label className="flex flex-col gap-[7px]">
             <span className="text-sm font-semibold">6 raqamli kod</span>
@@ -302,7 +347,7 @@ export default function KirishFormasi({ boshRejim, keyin, tovar }: Props) {
                 if (e.target.value !== v) e.target.value = v
                 setKod(v)
               }}
-              autoFocus
+              autoFocus={!botHavola}
               suppressHydrationWarning
               className="h-[52px] rounded-[13px] border border-chiziq bg-yuza px-4 text-center font-raqam text-[22px] font-semibold tracking-[0.3em] outline-none transition placeholder:text-chiziq-2 focus:border-2 focus:border-brend focus:px-[15px] focus:shadow-[0_0_0_4px_var(--color-brend-och)]"
             />

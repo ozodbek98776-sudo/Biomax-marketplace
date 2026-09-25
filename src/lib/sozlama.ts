@@ -35,6 +35,12 @@ const sxema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().optional(),
 
   /**
+   * Telegram Gateway tokeni (gateway.telegram.org) — kodni botsiz, raqamning
+   * O'ZIGA yuborish uchun. Bo'lsa asosiy yo'l shu; bo'lmasa bot ishlatiladi.
+   */
+  TELEGRAM_GATEWAY_TOKEN: z.string().optional(),
+
+  /**
    * Kirish kodi qayerga yuboriladi: 'telegram' yoki 'konsol'.
    * Lokal rivojlanishda 'konsol' — kod terminal'da ko'rinadi.
    * Ishlab chiqarishda bu qiymat E'TIBORGA OLINMAYDI (pastdagi `kodKanali`).

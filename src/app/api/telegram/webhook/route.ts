@@ -4,6 +4,7 @@ import { Bot, webhookCallback } from 'grammy'
 import { sozlama } from '@/lib/sozlama'
 import { db } from '@/lib/db'
 import { telefonniTozala } from '@/lib/domen/telefon'
+import { kirishKodiYubor } from '@/lib/domen/kirish-kodi'
 
 // Telegram bot webhook'i: mijoz botga raqamini ulashadi, chat ID bazaga
 // yoziladi va kirish kodlari shu chatga boradi (`lib/domen/kirish-kodi.ts`).
@@ -30,12 +31,18 @@ const bot = token ? new Bot(token) : null
 const KALIT = token ? webhookKaliti(token) : ''
 
 if (bot) {
-  // /start buyrug'i
+  // /start buyrug'i. Saytdagi «Telegram'da ochish» tugmasi `?start=kirish`
+  // bilan ochadi — u holda matn aynan kirishga qaratiladi.
   bot.command('start', async (ctx) => {
+    const saytdan = ctx.match === 'kirish'
     await ctx.reply(
-      '👋 Assalomu alaykum! BioMax Marketplace botiga xush kelibsiz.\n\n' +
-      '📱 Telefon raqamingizni yuboring (pastdagi tugmani bosing).\n' +
-      'Shunda saytda kirish kodlari shu yerga keladi.',
+      saytdan
+        ? '👋 Assalomu alaykum!\n\n' +
+          'Saytga kirish uchun pastdagi «📱 Telefon raqamni yuborish» tugmasini bosing — ' +
+          'kirish kodi shu zahoti shu yerga keladi.'
+        : '👋 Assalomu alaykum! BioMax Marketplace botiga xush kelibsiz.\n\n' +
+          '📱 Telefon raqamingizni yuboring (pastdagi tugmani bosing).\n' +
+          'Shunda saytda kirish kodlari shu yerga keladi.',
       {
         reply_markup: {
           keyboard: [
@@ -84,13 +91,21 @@ if (bot) {
       })
 
       await ctx.reply(
-        '✅ Ajoyib! Telefon raqamingiz saqlandi.\n\n' +
+        '✅ Raqamingiz ulandi.\n\n' +
         `📱 ${telefon}\n\n` +
-        'Endi BioMax Marketplace saytida kirish kodlari shu botga keladi.',
+        'Kirish kodi hozir shu yerga keladi — uni saytda kiriting.',
         {
           reply_markup: { remove_keyboard: true },
         },
       )
+
+      // Mijoz odatda saytdan kelgan: kodni qayta so'ratmasdan shu zahoti
+      // yuboramiz. Bot orqali — bepul va aynan shu chatga. Yaqinda kod
+      // yuborilgan bo'lsa (1 daqiqa) yangisi yuborilmaydi — eskisi amal qiladi.
+      const kod = await kirishKodiYubor(telefon, { faqatBot: true })
+      if (!kod.ok && kod.xato.kod !== 'juda_tez') {
+        console.error('[telegram-webhook] kod yuborilmadi:', kod.xato.kod)
+      }
     } catch (error) {
       console.error('[telegram-webhook] contact xato:', error)
       await ctx.reply('❌ Xatolik yuz berdi. Iltimos, qaytadan urinib ko\'ring.')

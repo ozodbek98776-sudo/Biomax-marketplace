@@ -2,7 +2,8 @@ import 'server-only'
 import { createHash, randomInt } from 'node:crypto'
 import { db } from '@/lib/db'
 import { kodKanali } from '@/lib/sozlama'
-import { telegramKodYubor } from '@/lib/telegram-bot'
+import { botNomi, telegramKodYubor } from '@/lib/telegram-bot'
+import { gatewayBormi, gatewaydanYubor } from '@/lib/telegram-gateway'
 import type { Natija } from '@/lib/natija'
 
 // Kirish kodi — bir martalik parol (OTP).
@@ -31,7 +32,10 @@ function tasodifiyKod(): string {
 /**
  * Yangi kirish kodini generatsiya qilib, Telegram orqali yuboradi.
  */
-export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: string }>> {
+export async function kirishKodiYubor(
+  telefon: string,
+  o: { faqatBot?: boolean } = {},
+): Promise<Natija<{ kanal: 'gateway' | 'telegram' | 'konsol' }>> {
   // Spam oldini olish: 1 daqiqada 1 martadan kop yuborilmasin
   const oxirgiKod = await db.mpKirishKodi.findFirst({
     where: {
@@ -54,52 +58,64 @@ export async function kirishKodiYubor(telefon: string): Promise<Natija<{ kanal: 
     }
   }
 
-  // Telegram ulanmaganini OLDIN aniqlaymiz: aks holda yozuv yaratiladi va
-  // mijoz kodni olmagan holda 1 daqiqaga "juda tez" deb bloklanadi.
-  let chatId: string | null = null
-  if (kodKanali === 'telegram') {
-    const hisob = await db.mpHisob.findUnique({
-      where: { telefon },
-      select: { telegramChatId: true },
-    })
-    chatId = hisob?.telegramChatId ?? null
-    if (!chatId) {
-      return {
-        ok: false,
-        xato: {
-          kod: 'telegram_ulangmagan',
-          xabar: `Telegram botni ulash kerak:\n\n1. @BioMaxMarketplaceBot ga kiring\n2. /start buyrug'ini yuboring yoki telefon raqamingizni yuboring\n3. Qaytadan urinib ko'ring`,
-        },
-      }
-    }
-  }
-
   const kod = tasodifiyKod()
-  const amalQiladi = new Date(Date.now() + AMAL_MUDDATI_MS)
-
-  const yozuv = await db.mpKirishKodi.create({
-    data: {
-      telefon,
-      kodXesh: kodXesh(kod),
-      amalQiladi,
-    },
+  const yangiYozuv = () => db.mpKirishKodi.create({
+    data: { telefon, kodXesh: kodXesh(kod), amalQiladi: new Date(Date.now() + AMAL_MUDDATI_MS) },
   })
 
-  // Telegram orqali yuborish
-  if (chatId) {
-    const natija = await telegramKodYubor(chatId, kod)
-    if (!natija.ok) {
-      // Yetkazilmagan kod bazada qolmasin — mijoz darhol qayta urina oladi
-      await db.mpKirishKodi.delete({ where: { id: yozuv.id } }).catch(() => {})
-      return { ok: false, xato: natija.xato }
-    }
-
-    return { ok: true, qiymat: { kanal: 'telegram' } }
+  // Rivojlanish: hech qayerga yuborilmaydi, kod terminalda ko'rinadi
+  if (kodKanali === 'konsol' && !o.faqatBot) {
+    await yangiYozuv()
+    console.info(`[kirish-kodi] ${telefon} → ${kod}`)
+    return { ok: true, qiymat: { kanal: 'konsol' } }
   }
 
-  // Konsol (lokal rivojlanish)
-  console.info(`[kirish-kodi] ${telefon} → ${kod}`)
-  return { ok: true, qiymat: { kanal: 'konsol' } }
+  // Bot zaxirasi uchun — mijoz botga raqamini ulaganmi
+  const hisob = await db.mpHisob.findUnique({ where: { telefon }, select: { telegramChatId: true } })
+  const chatId = hisob?.telegramChatId ?? null
+  const gateway = gatewayBormi() && !o.faqatBot
+
+  // Birorta ham yo'l yo'q — yozuv YARATILMAYDI (aks holda mijoz kodni
+  // olmagan holda 1 daqiqaga "juda tez" deb bloklanardi)
+  if (!gateway && !chatId) return ulanmagan()
+
+  const yozuv = await yangiYozuv()
+
+  // 1) Telegram Gateway — raqamning o'ziga, botsiz. Asosiy yo'l.
+  if (gateway) {
+    const g = await gatewaydanYubor(telefon, kod, AMAL_MUDDATI_MS / 1000)
+    if (g.ok) return { ok: true, qiymat: { kanal: 'gateway' } }
+    // Yetkazib bo'lmadi (masalan raqamda Telegram yo'q) — bot orqali urinamiz
+  }
+
+  // 2) Bot — mijoz botga raqamini ulagan bo'lsa
+  if (chatId) {
+    const natija = await telegramKodYubor(chatId, kod)
+    if (natija.ok) return { ok: true, qiymat: { kanal: 'telegram' } }
+    await db.mpKirishKodi.delete({ where: { id: yozuv.id } }).catch(() => {})
+    return { ok: false, xato: natija.xato }
+  }
+
+  // 3) Gateway yetkaza olmadi, bot ulanmagan — mijoz bir bosish bilan ulaydi
+  await db.mpKirishKodi.delete({ where: { id: yozuv.id } }).catch(() => {})
+  return ulanmagan()
+}
+
+/**
+ * Botga ulanmagan mijoz uchun javob. Sayt uzun ko'rsatma o'rniga bitta
+ * «Telegram'da ochish» tugmasini chiqaradi (`t.me/<bot>?start=kirish`):
+ * mijoz START va «Raqamni yuborish» ni bosadi — kod o'sha zahoti keladi.
+ */
+async function ulanmagan(): Promise<Natija<never>> {
+  const bot = await botNomi()
+  return {
+    ok: false,
+    xato: {
+      kod: 'telegram_ulangmagan',
+      xabar: 'Kod Telegram botimiz orqali keladi. Bir marta ulang — tugmani bosing, «START» va «Raqamni yuborish».',
+      tafsilot: bot ? { bot } : undefined,
+    },
+  }
 }
 
 /**

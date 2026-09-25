@@ -20,6 +20,26 @@ function getBot(): Bot {
   return bot
 }
 
+let botNomiKesh: string | null = null
+
+/**
+ * Botning @username'i — saytdagi «Telegram'da ochish» havolasi uchun
+ * (`https://t.me/<nom>?start=kirish`). Telegram'dan bir marta so'raladi va
+ * eslab qolinadi; token yo'q yoki Telegram javob bermasa `null`.
+ */
+export async function botNomi(): Promise<string | null> {
+  if (botNomiKesh) return botNomiKesh
+  if (!sozlama.TELEGRAM_BOT_TOKEN) return null
+  try {
+    const men = await getBot().api.getMe()
+    botNomiKesh = men.username ?? null
+    return botNomiKesh
+  } catch (e) {
+    console.error('[telegram-bot] nomini olib bo‘lmadi:', e instanceof Error ? e.message : e)
+    return null
+  }
+}
+
 export type KodYuborishNatija =
   | { ok: true; kanal: 'telegram' | 'konsol'; devKod?: string }
   | { ok: false; xato: DomenXatosi }

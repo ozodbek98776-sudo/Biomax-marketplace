@@ -211,7 +211,8 @@ Build bularsiz ham o'tadi, lekin **sayt ishlamaydi**: birinchi so'rovdayoq
 | `ERP_BASE_URL` | ERP ning tashqi manzili: `https://www.biomaxx.store` | ha |
 | `ERP_HMAC_SECRET` | ERP dagi `MP_HMAC_SECRET` bilan **bir xil**, kamida 32 belgi | ha |
 | `SESSION_SECRET` | kamida 32 belgi, faqat shu sayt uchun | ha |
-| `TELEGRAM_BOT_TOKEN` | @BotFather bergan token — kirish kodi shu bot orqali ketadi | ha |
+| `TELEGRAM_GATEWAY_TOKEN` | gateway.telegram.org tokeni — kod raqamning o'ziga, botsiz ketadi | tavsiya |
+| `TELEGRAM_BOT_TOKEN` | @BotFather bergan token — Gateway bo'lmasa kod shu bot orqali ketadi | ha |
 | `KOD_KANALI` | kerak emas — ishlab chiqarishda har doim `telegram` | yo'q |
 | `PROKSI_ORQALI` | `true` (Vercel teskari proksi ortida ishlaydi) | ha |
 | `SAYT_URL` | doimiy domen: `https://biomaxmarketplace.store` | yo'q¹ |
@@ -246,20 +247,35 @@ Sayt `biomaxmarketplace.store` domenida ishlaydi. Domen Vercel'ga ulangach:
 Ilova (PWA) **faqat HTTPS** da o'rnatiladi — Vercel domeni bilan bu
 avtomatik bajariladi.
 
-### 4. Kirish kodi (Telegram bot)
+### 4. Kirish kodi (Telegram)
 
-Mijoz raqamini yozadi, bir martalik 6 xonali kod **do'konning botiga**
-keladi. Kod bazada faqat SHA-256 xeshi bo'lib turadi, 5 daqiqa amal qiladi,
-5 ta noto'g'ri urinishdan keyin kuyadi; bitta raqamga daqiqada bitta kod,
-bitta IP dan 10 daqiqada 5 ta so'rov va 15 ta tekshiruv.
+Mijoz raqamini yozadi va bir martalik 6 xonali kod oladi. Kod bazada faqat
+SHA-256 xeshi bo'lib turadi, 5 daqiqa amal qiladi, 5 ta noto'g'ri urinishdan
+keyin kuyadi; bitta raqamga daqiqada bitta kod, bitta IP dan 10 daqiqada
+5 ta so'rov va 15 ta tekshiruv.
 
-**Mijoz uchun tartib:** botga kirib `/start` → «📱 Telefon raqamni yuborish».
-Shunda chat ID raqamga bog'lanadi va kodlar o'sha chatga boradi. Bog'lanmagan
-bo'lsa sayt shu yo'riqnomani ko'rsatadi (`telegram_ulangmagan`).
+**Kod qanday yetkaziladi** (`src/lib/domen/kirish-kodi.ts`), shu tartibda:
 
-**Sozlash (bir marta):**
+| # | Yo'l | Mijoz nima qiladi | Narx |
+|---|---|---|---|
+| 1 | **Telegram Gateway** — raqamning o'ziga, Telegram'ning rasmiy «Verification Codes» xabari | hech narsa | $0.01 / kod, yetkazilmasa qaytariladi |
+| 2 | **Bot** — mijoz botga raqamini oldin ulagan bo'lsa | hech narsa | bepul |
+| 3 | **Bir bosishli havola** — hali ulanmagan bo'lsa sayt «Telegram'da ochish» tugmasini ko'rsatadi (`t.me/<bot>?start=kirish`) | START → «Raqamni yuborish»; kod o'sha zahoti keladi | bepul |
 
-1. @BotFather da bot yarating → `TELEGRAM_BOT_TOKEN` ni Vercel'ga qo'ying
+Gateway sozlanmagan yoki yetkaza olmagan bo'lsa (raqamda Telegram yo'q,
+balans tugagan) tizim o'zi 2- va 3-yo'lga o'tadi; sabab jurnalda
+`[telegram-gateway] yuborilmadi: ...` bo'lib yoziladi.
+
+**Gateway'ni ulash (tavsiya):**
+
+1. https://gateway.telegram.org → Telegram hisobi bilan kiring
+2. Balansni to'ldiring, Account → API token ni oling
+3. Vercel'ga `TELEGRAM_GATEWAY_TOKEN` qilib qo'ying → Redeploy
+
+**Botni sozlash (zaxira, bir marta):**
+
+1. @BotFather da bot yarating → `TELEGRAM_BOT_TOKEN` ni Vercel'ga qo'ying.
+   Bot nomi mijozga ko'rinadi — do'kon nomiga mos bo'lsin.
 2. Deploydan keyin webhook'ni ro'yxatdan o'tkazing:
 
 ```bash
@@ -323,7 +339,7 @@ Kerak bo'lsa tekshiruvni qo'lda o'chirish: `SOZLAMANI_TEKSHIRMA=1`.
 | Sayt ochilganda 500, jurnalda "Muhit sozlamalari noto'g'ri" | majburiy o'zgaruvchilardan biri yo'q yoki 32 belgidan qisqa — jurnalda aynan qaysi biri yozilgan. Build bunga to'xtamaydi — o'zgaruvchini tuzatib, qayta deploy qiling |
 | Build: "Failed to collect page data for /_not-found" | Eski kod (2026-09-25 gacha) muhit qiymatidagi kichik farqda (`"true"`, `True`, oxirida bo'sh joy) build'ni yiqitardi. Endi qiymatlar tozalab o'qiladi va build sozlama sabab hech qachon to'xtamaydi — bu xato chiqsa, Vercel eski commit'ni yig'yapti |
 | Sayt ochiladi, lekin kirish/savat "Ruxsat yo'q" (403) | `SAYT_URL` boshqa domenni ko'rsatyapti — bo'sh qoldiring yoki aniq domenni yozing |
-| Kod kelmaydi | mijoz botga raqamini ulamagan (`telegram_ulangmagan`), `TELEGRAM_BOT_TOKEN` yo'q yoki webhook ro'yxatdan o'tmagan (`node scripts/webhook-ornat.mjs --holat`) |
+| Kod kelmaydi | Gateway: jurnalda `[telegram-gateway] yuborilmadi` (token, balans yoki raqamda Telegram yo'q). Bot: webhook ro'yxatdan o'tmagan (`node scripts/webhook-ornat.mjs --holat`) yoki `TELEGRAM_BOT_TOKEN` yo'q |
 | "relation does not exist" | migratsiya qo'llanmagan yoki pooler orqali qo'llangan |
 | **Push qilinsa ham sayt eski qolyapti** | Vercel loyihasi GitHub repoga ulanmagan. Tekshirish: repo → Deployments bo'limida `vercel[bot]` yozuvlari bo'lishi kerak; yo'q bo'lsa Vercel → Settings → Git → Connect Git Repository (`main` shoxi). Repo ro'yxatda ko'rinmasa, GitHub'da Vercel ilovasiga shu repoga ruxsat bering |
 
