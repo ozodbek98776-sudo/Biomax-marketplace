@@ -2,13 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Minus, Plus, ShoppingCart } from 'lucide-react'
+import { Loader2, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/cn'
 import type { Mavjudlik } from '@/lib/erp/turlar'
 import { useSaytHolati, type OynaTovari } from '@/components/sayt/SaytHolati'
-
-const MAKS = 99
+import MiqdorKiritgich from '@/components/sayt/MiqdorKiritgich'
 
 /**
  * "Savatga" tugmasi va savatdagi miqdor boshqaruvi.
@@ -98,25 +97,17 @@ export default function SavatgaTugma({
 
   if (kirgan && miqdor > 0) {
     return (
-      <div
-        className={cn('flex w-full items-stretch overflow-hidden border border-brend bg-brend-och text-brend', shakl, 'gap-0 px-0', className)}
-        role="group" aria-label={`${tovar.nomi} — savatdagi miqdor`}
-      >
-        <button type="button" onClick={() => ozgartir(miqdor - 1)} disabled={band} aria-label={miqdor === 1 ? 'Savatdan olib tashlash' : 'Kamaytirish'} className="flex w-11 shrink-0 items-center justify-center transition hover:bg-brend hover:text-white disabled:opacity-60 sm:w-12">
-          <Minus size={olcham === 'katta' ? 20 : 17} strokeWidth={2.4} aria-hidden />
-        </button>
-        <span className="flex flex-1 flex-col items-center justify-center leading-none" aria-live="polite">
-          {band ? <Loader2 size={16} className="animate-spin" aria-label="Saqlanmoqda" /> : (
-            <>
-              <span className="font-raqam font-semibold tabular-nums">{miqdor}</span>
-              {olcham === 'katta' && <span className="mt-1 text-[11px] font-medium">savatda</span>}
-            </>
-          )}
-        </span>
-        <button type="button" onClick={() => ozgartir(miqdor + 1)} disabled={band || miqdor >= MAKS} aria-label="Ko‘paytirish" className="flex w-11 shrink-0 items-center justify-center transition hover:bg-brend hover:text-white disabled:opacity-60 sm:w-12">
-          <Plus size={olcham === 'katta' ? 20 : 17} strokeWidth={2.4} aria-hidden />
-        </button>
-      </div>
+      <MiqdorKiritgich
+        qiymat={miqdor}
+        onOzgardi={ozgartir}
+        nomi={tovar.nomi}
+        // Nol yozilsa yoki bittadan kamaytirilsa — savatdan olib tashlanadi
+        min={0}
+        band={band}
+        korinish="tasma"
+        katta={olcham === 'katta'}
+        className={cn('border border-brend bg-brend-och text-brend', shakl, 'gap-0 px-0', className)}
+      />
     )
   }
 

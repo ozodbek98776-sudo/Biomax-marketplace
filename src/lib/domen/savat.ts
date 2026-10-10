@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { vitrina } from '@/lib/domen/vitrina'
 import { savatJamisi } from '@/lib/domen/narx'
 import { type Natija, muvaffaq, xato } from '@/lib/natija'
+import { MAKS_MIQDOR } from '@/lib/domen/miqdor'
 import type { Mavjudlik } from '@/lib/erp/turlar'
 
 // Savat — faqat ro'yxatdan o'tgan xaridor uchun.
@@ -12,8 +13,8 @@ import type { Mavjudlik } from '@/lib/erp/turlar'
 // olinadi. Aks holda mijoz kecha qo'shgan tovarni kechagi narxda ko'rib,
 // buyurtmada boshqa summaga duch kelardi.
 
-/** Bitta qatorga qo'shish mumkin bo'lgan eng katta miqdor. */
-export const MAKS_MIQDOR = 99
+// Chegara `@/lib/domen/miqdor` da — kiritgich bilan bitta manbadan
+export { MAKS_MIQDOR }
 
 export interface SavatQatori {
   elonId: string

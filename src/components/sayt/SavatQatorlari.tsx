@@ -3,13 +3,12 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, Minus, Package, Plus, Trash2 } from 'lucide-react'
+import { Package, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { MavjudlikBelgisi, Narx } from '@/components/ui/Belgilar'
 import type { SavatQatori } from '@/lib/domen/savat'
+import MiqdorKiritgich from '@/components/sayt/MiqdorKiritgich'
 import { cn } from '@/lib/cn'
-
-const MAKS = 99
 
 /**
  * Savat qatorlari — miqdor va o'chirish.
@@ -91,29 +90,16 @@ export default function SavatQatorlari({ qatorlar }: { qatorlar: SavatQatori[] }
               </div>
 
               <div className="flex items-center justify-between gap-3 sm:justify-end sm:gap-5">
-                <div className="flex h-10 items-center rounded-xl border border-chiziq bg-yuza" aria-label={`${q.nomi} miqdori`}>
-                  <button
-                    type="button"
-                    onClick={() => qoy(q, q.miqdor - 1)}
-                    disabled={band || q.miqdor <= 1}
-                    aria-label="Kamaytirish"
-                    className="flex h-10 w-10 items-center justify-center rounded-l-xl text-siyoh-2 transition hover:bg-yuza-2 disabled:text-chiziq-2 disabled:hover:bg-transparent"
-                  >
-                    <Minus size={16} strokeWidth={2.2} aria-hidden />
-                  </button>
-                  <span className="flex w-9 items-center justify-center font-raqam text-[15px] font-semibold tabular-nums" aria-live="polite">
-                    {bandQator === q.elonId || (kutilmoqda && oxirgi === q.elonId) ? <Loader2 size={15} className="animate-spin text-xira" aria-label="Saqlanmoqda" /> : q.miqdor}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => qoy(q, q.miqdor + 1)}
-                    disabled={band || yoq || q.miqdor >= MAKS}
-                    aria-label="Ko‘paytirish"
-                    className="flex h-10 w-10 items-center justify-center rounded-r-xl text-siyoh-2 transition hover:bg-yuza-2 disabled:text-chiziq-2 disabled:hover:bg-transparent"
-                  >
-                    <Plus size={16} strokeWidth={2.2} aria-hidden />
-                  </button>
-                </div>
+                <MiqdorKiritgich
+                  qiymat={q.miqdor}
+                  onOzgardi={yangi => qoy(q, yangi)}
+                  nomi={q.nomi}
+                  // Savatda eng kami bitta: olib tashlash alohida tugma bilan
+                  min={1}
+                  band={bandQator === q.elonId || (kutilmoqda && oxirgi === q.elonId)}
+                  qulf={band}
+                  oshirishMumkin={!yoq}
+                />
 
                 <Narx som={q.jamiSom} className="text-right text-[16px] sm:min-w-[104px] sm:text-[17px]" />
 
